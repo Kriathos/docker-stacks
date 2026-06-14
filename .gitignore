@@ -22,7 +22,7 @@ kafka/COMANDOS.ps1
 kafka/consumer.py
 kafka/INDEX.md
 kafka/Pruebas Cambios en SQL.sql
-kafka/QUICKSTART.md
+kafka/QUICK_START.md
 
 # Binarios y Backups
 databricks/jars/
