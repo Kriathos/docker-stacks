@@ -7,34 +7,35 @@ No se deben replicar estas credenciales en los README de cada stack.
 
 - PostgreSQL Airflow
   - Usuario: `airflow`
-  - Contraseña: `airflow`
+  - Contraseña: `Generar en docker-compose.yml`
   - Base de datos: `airflow`
 - Jupyter Lab
-  - Token de acceso: `mytoken`
+  - Token de acceso: `Generar en docker-compose.yml`
 - HashiCorp Vault
-  - Token raíz de desarrollo: `root`
+  - Token raíz de desarrollo: `Generar en docker-compose.yml`
 - Airflow
-  - Clave Fernet: `NXZKVV3HFKknH-Fube6KoB5qoInHRcQvWvhYdNoH-W0=`
+  - Clave Fernet: `Se debe generar con Python`
+  - python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 
 ## Kafka (`kafka/kafka-kraft/docker-compose.yml` y `kafka/kafka-zookeeper/docker-compose.yml`)
 
 - PostgreSQL CDC
   - Usuario: `postgres`
-  - Contraseña: `postgres`
+  - Contraseña: `Generar en docker-compose.yml`
   - Base de datos: `demo`
 
 ## Storage (`storage/docker-compose.yml`)
 
 - SQL Server
   - Usuario: `sa`
-  - Contraseña: `2613LApf.msql`
+  - Contraseña: `Generar en docker-compose.yml`
 - IBM DB2
   - Usuario: `db2inst1`
-  - Contraseña: `2613LApf.db2`
+  - Contraseña: `Generar en docker-compose.yml`
   - Base de datos: `SAMPLE`
 - MinIO
   - Usuario root: `admin`
-  - Contraseña root: `2613LApf.minio`
+  - Contraseña root: `Generar en docker-compose.yml`
 
 ## Servicios sin credenciales explícitas en docker-compose
 

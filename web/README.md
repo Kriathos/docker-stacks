@@ -1,69 +1,67 @@
-# Web Proxy Stack
+# 📡 Web Stack
 
-Proxy Docker basado en Nginx para exponer los servicios internos del repositorio mediante nombres de dominio locales.
+<div align="center">
 
-## Objetivo
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=flat-square&logo=nginx&logoColor=white)
+![Reverse Proxy](https://img.shields.io/badge/Reverse%20Proxy-Load%20Balancer-blue?style=flat-square)
+![Docker Network](https://img.shields.io/badge/Docker%20Network-mynet-2496ED?style=flat-square&logo=docker&logoColor=white)
 
-Este stack centraliza el acceso HTTP de los stacks de infraestructura y datos sin exponer los puertos de cada servicio directamente al host.
+**Proxy centralizado para orquestación de stacks**
 
-- Maneja rutas de proxy para `storage`, `kafka` y `databricks`
-- Permite usar hostnames amigables como `minio.luispicado.com`
-- Simplifica pruebas de integración local
+[Descripción](#descripción) • [Servicios](#-servicios) • [Inicio Rápido](#-inicio-rápido) • [Configuración](#-configuración) • [Rutas](#-rutas)
 
-## Arquitectura de enrutamiento
+</div>
 
-```mermaid
-flowchart TD
-  Browser[Usuario/Navegador] -->|HTTP| Nginx[Proxy Nginx]
-  Nginx --> SFTP[SFTPGo UI]
-  Nginx --> MinIOConsole[MinIO Console]
-  Nginx --> MinIOApi[MinIO API]
-  Nginx --> Apache[Apache File Server]
-  Nginx --> KafkaKraftUI[Kafka UI KRaft]
-  Nginx --> KafkaKraftAPI[Kafka Connect KRaft]
-  Nginx --> KafkaZooUI[Kafka UI Zookeeper]
-  Nginx --> KafkaZooAPI[Kafka Connect Zookeeper]
-  Nginx --> Jupyter[Jupyter Lab]
-  Nginx --> MLflow[MLflow]
-  Nginx --> Airflow[Airflow Webserver]
-  Nginx --> Vault[HashiCorp Vault]
-  Nginx --> Spark[Apache Spark UI]
-```
+---
 
-## Servicios
+## 📋 Descripción
 
-| Host local | Servicio interno | Comentario |
-|---|---|---|
-| `sftp.luispicado.com` | `sftpgo:51500` | UI de SFTPGo |
-| `minio.luispicado.com` | `minio:9001` | Consola MinIO |
-| `minio-api.luispicado.com` | `minio:9000` | API MinIO |
-| `data.luispicado.com` | `apache-fileserver:80` | Servidor de archivos estático |
-| `kraft-ui.luispicado.com` | `kafka-ui-kraft:8080` | UI Kafka KRaft |
-| `kraft-api.luispicado.com` | `kafka-connect-kraft:8083` | API Kafka Connect KRaft |
-| `zoo-ui.luispicado.com` | `kafka-ui-zoo:8080` | UI Kafka Zookeeper |
-| `zoo-api.luispicado.com` | `kafka-connect-zoo:8083` | API Kafka Connect Zookeeper |
-| `jupyter.luispicado.com` | `jupyter:8888` | Jupyter Lab |
-| `mlflow.luispicado.com` | `mlflow:5000` | MLflow Tracking |
-| `airflow.luispicado.com` | `airflow-webserver:8080` | Airflow UI |
-| `vault.luispicado.com` | `vault:8200` | Vault UI |
-| `spark.luispicado.com` | `spark:8080` | Spark Master UI |
+Stack de **Nginx** como proxy inverso centralizado para todos los servicios.
 
-## Uso recomendado
+**Beneficios:**
+- ✅ Acceso unificado por hostnames locales
+- ✅ Enrutamiento automático a servicios internos
+- ✅ Simplifica integración entre stacks
+- ✅ Gestión centralizada de puertos
+- ✅ Sin necesidad de exponer puertos individuales
 
-1. Levanta el stack `web`:
+---
+
+## 🚀 Inicio Rápido
 
 ```powershell
-cd .\web
+cd .\\web
 docker compose up -d
+docker compose ps
 ```
 
-2. Asegúrate de que los demás stacks estén en la red `mynet`.
-3. Agrega las entradas de hosts locales para los dominios proxy.
-4. Accede desde el navegador usando los hostnames definidos.
+---
 
-## Configuración de hosts
+## 📍 Servicios y rutas
 
-Agrega estas líneas a tu `C:\Windows\System32\drivers\etc\hosts`:
+| Hostname | Servicio | Descripción |
+|----------|----------|------------|
+| **sftp.luispicado.com** | SFTPGo:8080 | UI SFTP |
+| **minio.luispicado.com** | MinIO:9001 | Consola MinIO |
+| **minio-api.luispicado.com** | MinIO:9000 | API S3 |
+| **data.luispicado.com** | Apache:80 | Archivos estáticos |
+| **kraft-ui.luispicado.com** | Kafka UI KRaft:8080 | Monitor Kafka |
+| **kraft-api.luispicado.com** | Debezium KRaft:8083 | Connect |
+| **zoo-ui.luispicado.com** | Kafka UI Zoo:8080 | Monitor Zoo |
+| **zoo-api.luispicado.com** | Debezium Zoo:8083 | Connect Zoo |
+| **jupyter.luispicado.com** | Jupyter:8888 | Notebooks |
+| **mlflow.luispicado.com** | MLflow:5000 | ML Tracking |
+| **airflow.luispicado.com** | Airflow:8080 | Orquestación |
+| **vault.luispicado.com** | Vault:8200 | Gestión secretos |
+| **spark.luispicado.com** | Spark:8080 | Cluster Spark |
+
+---
+
+## ⚙️ Configuración
+
+### Archivo hosts Windows
+
+Editar: `C:\Windows\System32\drivers\etc\hosts`
 
 ```text
 127.0.0.1 sftp.luispicado.com
@@ -81,22 +79,155 @@ Agrega estas líneas a tu `C:\Windows\System32\drivers\etc\hosts`:
 127.0.0.1 spark.luispicado.com
 ```
 
-## Consideraciones de seguridad
+### Network Docker
 
-- `nginx.conf` actualmente no tiene certificados TLS configurados.
-- No expongas este proxy en entornos no controlados sin habilitar HTTPS.
-- Usa el proxy solo para desarrollo y pruebas locales.
+Todos los servicios en red `mynet`:
+```bash
+docker network create mynet --driver bridge
+```
 
-## Diagnóstico rápido
+---
 
-| Síntoma | Verificar |
-|---|---|
-| No responde `jupyter.luispicado.com` | `docker compose ps`, servicio `jupyter` activo |
-| No responde `minio.luispicado.com` | `minio` en la red `mynet` |
-| Hostname no resuelve | `/etc/hosts` o `C:\Windows\System32\drivers\etc\hosts` |
-| Proxy se cae | `docker compose logs -f nginx` |
+## 💼 Uso
 
-## Documentación adicional
+### Acceder a servicios
 
-- `web/config.md`: detalles de configuración de Nginx y requisitos de red
-- `..\credenciales.md`: credenciales globales si aplican a servicios proxy
+```powershell
+# Jupyter Lab
+http://jupyter.luispicado.com
+
+# MinIO Console
+http://minio.luispicado.com
+
+# MLflow
+http://mlflow.luispicado.com
+
+# Airflow
+http://airflow.luispicado.com
+
+# Kafka Monitor
+http://kraft-ui.luispicado.com
+```
+
+### Configurar nuevas rutas
+
+Editar `nginx.conf`:
+```nginx
+upstream mi_servicio {
+    server mi-contenedor:puerto;
+}
+
+server {
+    listen 80;
+    server_name mi-servicio.luispicado.com;
+    
+    location / {
+        proxy_pass http://mi_servicio;
+    }
+}
+```
+
+Recargar:
+```powershell
+docker compose exec nginx nginx -s reload
+```
+
+---
+
+## 🏗️ Arquitectura
+
+```mermaid
+flowchart TB
+  Browser[🌐 Browser]
+  
+  Browser -->|HTTP requests| Nginx["📡 Nginx<br/>Port 80"]
+  
+  Nginx -->|sftp.luispicado.com| SFTPGo["SFTPGo"]
+  Nginx -->|minio.luispicado.com| MinIO["MinIO"]
+  Nginx -->|jupyter.luispicado.com| Jupyter["Jupyter"]
+  Nginx -->|mlflow.luispicado.com| MLflow["MLflow"]
+  Nginx -->|airflow.luispicado.com| Airflow["Airflow"]
+  Nginx -->|kraft-ui.luispicado.com| KafkaUI["Kafka UI"]
+  
+  style Nginx fill:#f9f,stroke:#333
+  style Browser fill:#bbf,stroke:#333
+```
+
+---
+
+## 🔌 Integración con stacks
+
+### Storage
+- MinIO disponible en `minio.luispicado.com`
+- SFTPGo en `sftp.luispicado.com`
+- Apache en `data.luispicado.com`
+
+### Kafka
+- KRaft UI en `kraft-ui.luispicado.com`
+- Zookeeper UI en `zoo-ui.luispicado.com`
+- Debezium API en `kraft-api.luispicado.com`
+
+### Databricks
+- Jupyter en `jupyter.luispicado.com`
+- MLflow en `mlflow.luispicado.com`
+- Airflow en `airflow.luispicado.com`
+- Spark en `spark.luispicado.com`
+
+---
+
+## 🛑 Operaciones
+
+### Detener
+```powershell
+docker compose down
+```
+
+### Ver logs
+```powershell
+docker compose logs -f nginx
+```
+
+### Recargar configuración
+```powershell
+docker compose exec nginx nginx -s reload
+```
+
+### Verificar servicios
+```powershell
+docker network inspect mynet
+```
+
+---
+
+## ✋ Problemas
+
+| Problema | Solución |
+|----------|----------|
+| ❌ Hostname no resuelve | Verificar `/etc/hosts` |
+| ❌ 502 Bad Gateway | Servicio no activo o no en `mynet` |
+| ❌ Nginx no inicia | `docker compose logs nginx` |
+| ❌ Puerto 80 en uso | Cambiar puerto en `docker-compose.yml` |
+
+---
+
+## ⚠️ Seguridad
+
+- Solo para **desarrollo local**
+- Sin TLS/HTTPS configurado
+- No expongas en redes no controladas
+- Para producción: agregar certificados SSL
+
+---
+
+## 📚 Recursos
+
+- [Nginx Documentation](https://nginx.org/en/docs/)
+- [Nginx Proxy Config](https://nginx.org/en/docs/http/ngx_http_proxy_module.html)
+
+---
+
+<div align="center">
+
+[⬆ Arriba](#-web-stack) • [← Proyecto Principal](../README.md)
+
+</div>

@@ -1,108 +1,272 @@
-# Storage Stack
+# 💾 Storage Stack
 
-Stack Docker para servicios de almacenamiento y datos: SQL Server, IBM DB2, SFTPGo, MinIO y Apache HTTP File Server.
+<div align="center">
 
-## Objetivo
+![SQL Server](https://img.shields.io/badge/SQL%20Server-CC2927?style=flat-square&logo=microsoft-sql-server&logoColor=white)
+![IBM DB2](https://img.shields.io/badge/IBM%20DB2-00758F?style=flat-square&logo=ibm&logoColor=white)
+![MinIO](https://img.shields.io/badge/MinIO-C72C48?style=flat-square&logo=minio&logoColor=white)
+![SFTPGo](https://img.shields.io/badge/SFTPGo-FF6B6B?style=flat-square&logo=openssh&logoColor=white)
 
-Crear un entorno de prueba local para:
-- Bases de datos transaccionales (SQL Server, DB2)
-- Almacenamiento de objetos (MinIO)
-- Transferencias de archivos SFTP (SFTPGo)
-- Servir contenido estático (Apache)
+**Almacenamiento multiformato: bases de datos, objetos y archivos**
 
-## Arquitectura
+[Descripción](#descripción) • [Servicios](#-servicios) • [Inicio Rápido](#-inicio-rápido) • [Configuración](#-configuración) • [Uso](#-uso)
 
-```mermaid
-flowchart TD
-  Browser[Usuario] -->|HTTP| Apache[Apache Fileserver]
-  Browser -->|SFTP| SFTPGo[SFTPGo]
-  Browser -->|HTTP| MinIOConsole[MinIO Console]
-  SQLServer[SQL Server] --> sqlserver_data[(sqlserver_data)]
-  DB2[IBM DB2] --> db2_data[(db2_data)]
-  SFTPGo --> Folders[F:/sftp]
-  MinIO --> MinioData[F:/minio-data]
-  Apache --> WebFiles[F:/apache-fileserver]
-  Proxy[Proxy Nginx web] --> Apache
-  Proxy --> MinIO
-  Proxy --> SFTPGo
+</div>
+
+---
+
+## 📋 Descripción
+
+Stack completo de almacenamiento con múltiples tecnologías:
+
+- **SQL Server** - Base de datos relacional transaccional
+- **IBM DB2** - Base de datos empresarial
+- **MinIO** - Almacenamiento de objetos compatible con S3
+- **SFTPGo** - Servidor SFTP con interfaz web
+- **Apache HTTP Server** - Servidor de archivos estáticos
+
+Perfecto para:
+- 🗄️ Pruebas multi-BD
+- 📦 Almacenamiento de objetos local
+- 📤 Transferencias SFTP
+- 📊 Pipelines de ingesta de datos
+- 🧪 Laboratorios de integración
+
+---
+
+## 🛠️ Servicios
+
+| Servicio | Puerto | Tipo | Descripción |
+|----------|--------|------|------------|
+| **SQL Server** | 1433 | Base de datos | Relacional transaccional |
+| **DB2** | 50000 | Base de datos | Empresarial IBM |
+| **MinIO** | 9000 | Objetos | S3-compatible |
+| **SFTPGo** | 2022 | Transferencia | Servidor SFTP |
+| **Apache** | 80 | Web | Servidor de archivos |
+
+---
+
+## 🚀 Inicio Rápido
+
+### 1. Preparar directorios locales
+```powershell
+# Windows - crear carpetas
+New-Item -Path "F:\\sftp" -ItemType Directory -Force
+New-Item -Path "F:\\sftpgo-data" -ItemType Directory -Force
+New-Item -Path "F:\\minio-data" -ItemType Directory -Force
+New-Item -Path "F:\\apache-fileserver" -ItemType Directory -Force
 ```
 
-## Servicios principales
-
-| Servicio | Función | Almacenamiento |
-|---|---|---|
-| `sqlserver` | SQL Server local | `sqlserver_data` |
-| `db2` | IBM DB2 local | `db2_data` |
-| `sftpgo` | SFTP + administración | `F:/sftp`, `F:/sftpgo-data` |
-| `minio` | Almacenamiento de objetos | `F:/minio-data` |
-| `apache-fileserver` | Servir archivos estáticos | `F:/apache-fileserver` |
-
-## Quick Start
-
-1. Asegura que las rutas locales existen:
-   - `F:/sftp`
-   - `F:/sftpgo-data`
-   - `F:/minio-data`
-   - `F:/apache-fileserver`
-
-2. Levanta el stack:
-
+### 2. Iniciar stack
 ```powershell
-cd .\storage
+cd .\\storage
 docker compose up -d
-```
-
-3. Verifica el estado:
-
-```powershell
 docker compose ps
 ```
 
-## Accesos y puertos
+---
 
-| Servicio | Puerto host | Nota |
-|---|---|---|
-| SQL Server | `51430` | `1433` interno |
-| DB2 | `51431` | `50000` interno |
-| SFTPGo | `51432` | `2022` SFTP |
-| MinIO | No expuesto | Activar `ports:` para host |
-| Apache | No expuesto | Activar `ports:` para host |
+## ⚙️ Configuración
 
-> MinIO y Apache no exponen puertos por defecto. Si usas el proxy `web`, accede mediante hostnames en lugar de conexiones directas.
+### Volúmenes locales
+```yaml
+# SQL Server
+volumes:
+  - sqlserver_data:/var/opt/mssql
 
-## Casos de uso
+# DB2
+volumes:
+  - db2_data:/home/db2inst1/db2inst1
 
-- **Data vaulting**: files SFTP y objetos MinIO para ingestion pipelines
-- **Datos transaccionales**: SQL Server y DB2 para pruebas de ETL
-- **Entrega de contenido**: Apache sirve frontends o artefactos estáticos
-- **Integración local**: proxy `web` permite un punto de acceso central
+# SFTPGo
+volumes:
+  - F:\\sftp:/data/sftp
 
-## Mejores prácticas
+# MinIO
+volumes:
+  - F:\\minio-data:/data
 
-- Evita editar datos directamente dentro del contenedor.
-- Usa rutas locales persistentes para datos montados.
-- Para reproducibilidad, define volumes claros en `docker-compose.yml`.
-- Si trabajas en Windows, verifica permisos de carpeta y compatibilidad con Docker Desktop.
+# Apache
+volumes:
+  - F:\\apache-fileserver:/var/www/html
+```
 
-## Configuración
+### Credenciales
 
-- `docker-compose.yml` monta rutas de Windows en los servicios.
-- Si no deseas usar `F:/`, reemplaza las rutas por directorios locales adecuados.
-- `SFTPGo` usa SQLite internamente para su metadata.
-- `MinIO` se inicia con credenciales definidas en el compose.
+Ver [`credenciales.md`](../credenciales.md):
+- 🔐 SQL Server user/password
+- 🔑 DB2 user/password
+- 🗝️ MinIO access/secret keys
+- 👤 SFTPGo users
 
-## Matriz de decisiones
+---
 
-| Necesidad | Servicio recomendado |
-|---|---|
-| Base de datos relacional local | SQL Server o DB2 |
-| Almacenamiento de objetos local | MinIO |
-| Acceso de archivos mediante cliente | SFTPGo |
-| Servir archivos estáticos | Apache |
+## 💼 Uso Común
 
-## Documentación adicional
+### SQL Server
 
-- `storage/config.md` para detalles de volúmenes y rutas
-- `..\credenciales.md` para credenciales globales
+#### Conectar
+```powershell
+docker compose exec sqlserver sqlcmd -S localhost -U sa
+```
 
-**Importante:** no copies credenciales en este README; usa `credenciales.md` para centralizarlas.
+#### Crear DB
+```sql
+CREATE DATABASE MyDatabase;
+```
+
+#### Restaurar backup
+```powershell
+# Copiar .bak a volumen
+docker compose cp "AdventureWorks2022.bak" sqlserver:/var/opt/mssql/backup/
+
+# En SQL
+RESTORE DATABASE MyDatabase FROM DISK = '/var/opt/mssql/backup/MyDB.bak'
+```
+
+### DB2
+
+#### Conectar
+```powershell
+docker compose exec db2 bash
+db2 connect to sample
+```
+
+#### Listar bases de datos
+```bash
+db2 list db directory
+```
+
+### MinIO
+
+#### Ver consola
+```powershell
+# MinIO Console en puerto 9000
+# Acceso web automático si está expuesto
+```
+
+#### Cliente Python
+```python
+from minio import Minio
+client = Minio(
+    "localhost:9000",
+    access_key="minioadmin",
+    secret_key="minioadmin",
+    secure=False
+)
+```
+
+### SFTPGo
+
+#### Acceder a UI
+```
+http://localhost:8080/web/
+```
+
+#### Conectar por SFTP
+```bash
+sftp -P 2022 user@localhost
+```
+
+### Apache
+
+#### Agregar archivos
+```powershell
+# Copiar a F:\\apache-fileserver
+# Accesible en http://localhost/
+```
+
+---
+
+## 🏗️ Arquitectura
+
+```mermaid
+flowchart TB
+  User[🖥️ Usuario]
+  
+  subgraph BD["🗄️ Bases de Datos"]
+    SQL[SQL Server]
+    DB2["IBM DB2"]
+  end
+  
+  subgraph Storage["📦 Almacenamiento"]
+    MinIO["MinIO<br/>S3-compatible"]
+    SFTP["SFTPGo<br/>SFTP"]
+  end
+  
+  subgraph Web["📡 Web"]
+    Apache["Apache<br/>Static Files"]
+  end
+  
+  User -->|SQL| BD
+  User -->|S3/HTTP| MinIO
+  User -->|SFTP| SFTP
+  User -->|HTTP| Apache
+```
+
+---
+
+## 🔌 Integración
+
+### Con Kafka (CDC)
+- PostgreSQL (en Kafka stack) se replica a SQL Server
+- MinIO recibe backups de topics
+
+### Con Databricks
+- Spark lee desde SQL Server via JDBC
+- Escribe resultados a MinIO
+
+---
+
+## 🛑 Operaciones
+
+### Detener
+```powershell
+docker compose down
+```
+
+### Limpiar (⚠️ borra datos)
+```powershell
+docker compose down -v
+```
+
+### Ver logs
+```powershell
+docker compose logs -f sqlserver
+docker compose logs -f db2
+docker compose logs -f minio
+```
+
+### Backup SQL Server
+```powershell
+docker compose exec sqlserver sqlcmd -S localhost -U sa -Q "BACKUP DATABASE [dbname] TO DISK='/var/opt/mssql/backup/dbname.bak'"
+```
+
+---
+
+## ✋ Problemas
+
+| Problema | Solución |
+|----------|----------|
+| ❌ SQL Server no inicia | Aumentar memoria Docker (mínimo 2GB) |
+| ❌ DB2 timeout | Esperar 60+ seg en primer inicio |
+| ❌ MinIO volumen vacío | Verificar permisos en F:\\minio-data |
+| ❌ SFTPGo sin conectar | Revisar puerto 2022 disponible |
+| ❌ Apache 403 Forbidden | Revisar permisos en F:\\apache-fileserver |
+
+---
+
+## 📚 Recursos
+
+- [SQL Server Docker](https://hub.docker.com/_/microsoft-mssql-server)
+- [IBM DB2 Docker](https://hub.docker.com/r/ibmcom/db2)
+- [MinIO](https://min.io/) - S3-compatible storage
+- [SFTPGo](https://sftpgo.github.io/) - SFTP server
+
+---
+
+<div align="center">
+
+[⬆ Arriba](#-storage-stack) • [← Proyecto Principal](../README.md)
+
+</div>

@@ -82,14 +82,14 @@ docker network create mynet --driver bridge
 ### Configuración de hosts (opcional pero recomendado)
 Edita `C:\Windows\System32\drivers\etc\hosts`:
 ```
-127.0.0.1 sftp.luispicado.com
-127.0.0.1 minio.luispicado.com
-127.0.0.1 jupyter.luispicado.com
-127.0.0.1 mlflow.luispicado.com
-127.0.0.1 airflow.luispicado.com
-127.0.0.1 vault.luispicado.com
-127.0.0.1 kraft-ui.luispicado.com
-127.0.0.1 zoo-ui.luispicado.com
+127.0.0.1 sftp.dominio.com
+127.0.0.1 minio.dominio.com
+127.0.0.1 jupyter.dominio.com
+127.0.0.1 mlflow.dominio.com
+127.0.0.1 airflow.dominio.com
+127.0.0.1 vault.dominio.com
+127.0.0.1 kraft-ui.dominio.com
+127.0.0.1 zoo-ui.dominio.com
 ```
 
 ---
@@ -285,5 +285,3 @@ MIT License - Libre para uso educativo y de laboratorio.
 [⬆ Volver arriba](#-docker-stacks)
 
 </div>
-
-

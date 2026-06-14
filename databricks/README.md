@@ -1,127 +1,222 @@
-# Databricks-style Local Stack
+# 🔬 Databricks Stack
 
-Un laboratorio Docker para ingeniería de datos que combina Spark, Jupyter, MLflow, Airflow, Vault y PostgreSQL en un solo entorno local.
+<div align="center">
 
-## Objetivo del stack
+![Apache Spark](https://img.shields.io/badge/Apache%20Spark-E25A1C?style=flat-square&logo=apache-spark&logoColor=white)
+![Jupyter](https://img.shields.io/badge/Jupyter-F37726?style=flat-square&logo=jupyter&logoColor=white)
+![MLflow](https://img.shields.io/badge/MLflow-0194E2?style=flat-square&logo=python&logoColor=white)
+![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-017CEE?style=flat-square&logo=apache-airflow&logoColor=white)
+![Vault](https://img.shields.io/badge/HashiCorp%20Vault-000000?style=flat-square&logo=vault&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white)
 
-Este stack está diseñado para:
-- Orquestar pipelines de datos y workflows con Airflow
-- Ejecutar análisis y experimentos con Spark desde Jupyter
-- Registrar modelos y métricas con MLflow
-- Gestionar secretos con Vault
-- Mantener datos persistentes en volúmenes y carpetas locales
+**Laboratorio integrado de análisis de datos, machine learning y orquestación**
 
-## Arquitectura
+[Descripción](#descripción) • [Tecnologías](#-tecnologías) • [Servicios](#-servicios) • [Inicio Rápido](#-inicio-rápido) • [Configuración](#-configuración) • [Uso](#-uso)
 
-```mermaid
-flowchart LR
-  Notebook[Jupyter Lab]
-  SparkMaster[Apache Spark Master]
-  SparkWorker[Apache Spark Worker]
-  MLflow[MLflow Server]
-  MLruns[./mlruns]
-  Airflow[Airflow Webserver/Scheduler]
-  Postgres[PostgreSQL]
-  Vault[HashiCorp Vault]
+</div>
 
-  Notebook -->|PySpark jobs| SparkMaster
-  SparkMaster --> SparkWorker
-  Notebook --> MLflow
-  MLflow --> MLruns
-  Airflow --> Postgres
-  Airflow --> SparkMaster
-  Vault --> Notebook
-  Vault --> Airflow
-  Postgres -->|Airflow metadata| Airflow
-```
+---
 
-## Servicios clave
+## 📋 Descripción
 
-| Servicio | Función | Persistencia |
-|---|---|---|
-| `spark` | Spark Master | `spark_data`, `spark_parquet` |
-| `spark-worker` | Spark executor | `spark_parquet` |
-| `jupyter` | Entorno interactivo | `./notebooks`, `./mlruns` |
-| `mlflow` | Tracking de experimentos | `./mlruns` |
-| `postgres` | Metadata de Airflow | `postgres_data` |
-| `airflow-webserver` | UI de workflows | `./dags` |
-| `airflow-scheduler` | Ejecución de DAGs | `./dags` |
-| `vault` | Gestión de secretos | `./vault/data`, `./vault/config` |
+Stack especializado para ciencia de datos, análisis y machine learning en local. Proporciona un entorno completo con:
 
-## Quick Start
+- **Computación distribuida** con Apache Spark
+- **Notebooks interactivos** con Jupyter Lab
+- **Experimentación ML** con MLflow para tracking
+- **Orquestación de workflows** con Apache Airflow
+- **Gestión de secretos** con HashiCorp Vault
+- **Base de datos** PostgreSQL para almacenar metadatos
 
-1. Asegura la red Docker externa `mynet`:
+Ideal para prototipado, investigación y desarrollo de pipelines de datos localmente sin dependencias cloud.
 
-```powershell
-docker network create mynet --driver bridge
-```
+---
 
-2. Inicia el stack:
+## 🛠️ Tecnologías
 
+| Servicio | Versión | Puerto | Descripción |
+|----------|---------|--------|------------|
+| **Spark Master** | 3.x | 7077, 8080 | Master del cluster Spark |
+| **Spark Worker** | 3.x | 8081 | Nodo worker del cluster |
+| **Jupyter Lab** | Latest | 8888 | Notebooks interactivos |
+| **MLflow** | Latest | 5000 | Tracking de experimentos |
+| **Airflow Webserver** | 2.x | 8082 | Orquestación de DAGs |
+| **Airflow Scheduler** | 2.x | - | Scheduler de tareas |
+| **Vault** | Latest | 8200 | Gestión de secretos |
+| **PostgreSQL** | 13 | 5432 | Metadatos y persistencia |
+
+---
+
+## 🔌 Servicios
+
+### Análisis y Exploración
+- **Jupyter Lab** con PySpark preconfigurado
+- Delta Lake integration
+- Librerías de ciencia de datos (pandas, numpy, scikit-learn)
+
+### Orquestación
+- **Airflow** con LocalExecutor
+- DAGs definidos en `dags/`
+- PostgreSQL para metadatos
+
+### Tracking de ML
+- **MLflow** para registrar experimentos
+- Artefactos en `mlruns/`
+- Gestión de modelos
+
+### Secretos
+- **Vault** en modo dev
+- Integración con Jupyter y Airflow
+
+---
+
+## 🚀 Inicio Rápido
+
+### 1. Preparar el entorno
 ```powershell
 cd .\databricks
+```
+
+### 2. Iniciar servicios
+```powershell
 docker compose up -d
 ```
 
-3. Verifica el estado:
-
+### 3. Verificar servicios activos
 ```powershell
 docker compose ps
 ```
 
-4. Accede a los servicios principales.
+### 4. Acceder a los servicios
 
-## Accesos principales
+| Servicio | URL |
+|----------|-----|
+| Jupyter Lab | http://localhost:8888 |
+| Spark Master UI | http://localhost:8080 |
+| Airflow | http://localhost:8082 |
+| MLflow | http://localhost:5000 |
+| Vault UI | http://localhost:8200 |
 
-| Servicio | URL / Nota |
-|---|---|
-| Spark Master | `http://localhost:8080` |
-| Jupyter Lab | `http://localhost:8888` (token: `mytoken`) |
-| Airflow Webserver | `http://localhost:8081` |
-| MLflow | No expuesto por defecto |
-| Vault | No expuesto por defecto |
+---
 
-> Si necesitas acceso directo a MLflow o Vault, agrega `ports:` a los servicios correspondientes en `docker-compose.yml`.
+## ⚙️ Configuración
 
-## Casos de uso comunes
+### Variables de entorno
 
-- **Exploración de datos**: carga datos en `notebooks/` y ejecuta jobs Spark.
-- **ML experimentación**: usa MLflow para registrar runs y artefactos.
-- **Orquestación**: define DAGs en `dags/` y valida con Airflow.
-- **Secrets**: prueba conexiones seguras con Vault en modo dev.
-
-## Comparativa de flujo
-
-| Flujo | Beneficio |
-|---|---|
-| Spark + Jupyter | Desarrollo interactivo de análisis |
-| Airflow + Postgres | Orquestación reproducible |
-| MLflow + `mlruns` | Tracking de datos y modelos |
-| Vault | Gestión de configuraciones sensibles |
-
-## Recomendaciones
-
-- Guarda tus notebooks en `notebooks/` para versionamiento.
-- Mantén DAGs en `dags/` y no los edites dentro del contenedor.
-- Si vas a reiniciar seguido, crea una imagen Docker con dependencias fijas.
-- No uses este stack en producción sin refactorizar seguridad y escalabilidad.
-
-## Detalles técnicos
-
-- Jupyter instala `jupyter`, `jupyterlab`, `pyspark==3.5.0`, `delta-spark==3.0.0`, `hvac` al arrancar.
-- Airflow usa `LocalExecutor`, apto para desarrollo.
-- Vault está configurado en modo dev (`tls_disable = 1`).
-
-## Operación y limpieza
-
-```powershell
-docker compose logs -f jupyter
-docker compose logs -f airflow-webserver
-docker compose down
-docker compose down -v
+```bash
+JUPYTER_ENABLE_LAB=yes
+AIRFLOW_HOME=/opt/airflow
+VAULT_ADDR=http://vault:8200
 ```
 
-## Documentación adicional
+### Credenciales
 
-- `databricks/config.md` para detalles de red y volúmenes
-- `..\credenciales.md` para credenciales globales si se agregan
+Todas las credenciales están centralizadas en [`credenciales.md`](../credenciales.md):
+- 🔐 Usuarios y contraseñas
+- 🔑 Tokens de Vault
+- 🗝️ Claves de acceso
+
+### Configuración de red
+
+- Red compartida: `mynet`
+- Comunicación interna: `servicename:puerto`
+- Acceso desde host: `localhost:puerto`
+
+---
+
+## 💼 Uso Común
+
+### Ejecutar notebooks
+```powershell
+# Ver logs de Jupyter
+docker compose logs -f jupyter
+
+# Acceder a http://localhost:8888
+# Token disponible en logs
+```
+
+### Monitorear Spark
+```powershell
+# Acceder a http://localhost:8080
+docker compose logs -f spark-master
+```
+
+### Crear DAG en Airflow
+```powershell
+# Los DAGs van en ./dags/
+# Crear archivo: ./dags/mi_dag.py
+docker compose logs -f airflow-scheduler
+```
+
+### Consultar PostgreSQL
+```powershell
+docker compose exec postgres psql -U postgres -d airflow -c "SELECT * FROM dag_run LIMIT 10;"
+```
+
+### Gestionar Vault
+```powershell
+# Acceder a http://localhost:8200
+docker compose exec vault vault secrets list
+```
+
+---
+
+## 📁 Estructura
+
+```
+databricks/
+├── docker-compose.yml          # Configuración de servicios
+├── README.md                    # Este archivo
+├── notebooks/                   # Notebooks Jupyter
+│   ├── Conexiones.ipynb
+│   ├── TestDelta.ipynb
+│   ├── TestMinio.ipynb
+│   └── TestVault.ipynb
+├── dags/                        # DAGs de Airflow
+├── jars/                        # Librerías personalizadas
+├── mlruns/                      # Experimentos MLflow
+└── vault/                       # Datos de Vault (NO VERSIONADO)
+```
+
+---
+
+## 🔌 Integración con otros stacks
+
+- **Kafka → Databricks**: Consume eventos en tiempo real
+- **Storage → Databricks**: Lee de MinIO o SQL Server
+- **MLflow compartido**: Modelos reutilizables
+
+---
+
+## 🛑 Detener y limpiar
+
+```powershell
+# Detener (mantiene volúmenes)
+docker compose down
+
+# Limpiar todo (⚠️ borra datos)
+docker compose down -v
+
+# Ver logs de errores
+docker compose logs --tail 50
+```
+
+---
+
+## ✋ Solución de Problemas
+
+| Problema | Solución |
+|----------|----------|
+| ❌ Jupyter no accesible | Revisar `docker compose logs jupyter` |
+| ❌ Spark worker offline | Reiniciar: `docker compose restart spark-master` |
+| ❌ Airflow no sincroniza DAGs | DAGs en `./dags/` se monitorean automáticamente |
+| ❌ Vault sealed | Acceder a http://localhost:8200 |
+| ❌ PostgreSQL conexión rechazada | Verificar credenciales en `credenciales.md` |
+
+---
+
+<div align="center">
+
+[⬆ Volver arriba](#-databricks-stack) • [← Volver al proyecto principal](../README.md)
+
+</div>

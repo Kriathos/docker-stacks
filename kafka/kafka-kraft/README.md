@@ -1,125 +1,163 @@
-# Kafka KRaft Stack
+# ⚡ Kafka KRaft Stack
 
-Stack Docker independiente para Kafka en modo KRaft con 3 brokers, Kafka Connect y PostgreSQL. Ideal para pruebas de Change Data Capture (CDC) con un diseño moderno y sin Zookeeper.
+<div align="center">
 
-## Propósito
+![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-231F20?style=flat-square&logo=apache-kafka&logoColor=white)
+![KRaft](https://img.shields.io/badge/KRaft%20Mode-Modern-brightgreen?style=flat-square)
+![Debezium](https://img.shields.io/badge/Debezium-FF6D00?style=flat-square&logo=python&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white)
 
-Este stack está diseñado para:
-- Estudiar Kafka KRaft en un entorno autónomo
-- Ejecutar Debezium CDC sobre PostgreSQL
-- Probar el ciclo completo de evento: BD → Kafka → consumidor Python
-- Validar configuraciones de cluster y conectores en un laboratorio local
+**Arquitectura moderna de Kafka sin Zookeeper**
 
-## Arquitectura
+[Descripción](#descripción) • [Inicio Rápido](#-inicio-rápido) • [Uso](#-uso) • [CDC](#-cdc-change-data-capture)
 
-```mermaid
-flowchart LR
-  PG[PostgreSQL: demo] -->|WAL/pgoutput| Connect[Debezium Kafka Connect]
-  Connect -->|CDC events| Kafka1[Kafka Broker 1]
-  Connect -->|CDC events| Kafka2[Kafka Broker 2]
-  Connect -->|CDC events| Kafka3[Kafka Broker 3]
-  Kafka1 --> UI[Kafka UI]
-  Kafka2 --> UI
-  Kafka3 --> UI
-  Kafka1 --> Consumer[Python Consumer]
-  Jupyter[Jupyter Lab] -->|Spark jobs| Kafka1
-  Jupyter --> MLflow[MLflow]
-  Airflow[Airflow] --> Postgres[PostgreSQL]
-  Airflow --> Spark[Apache Spark]
-  Vault[Vault] -->|Secrets| Jupyter
-  subgraph Servicios[Servicios]
-    Kafka1
-    Kafka2
-    Kafka3
-    Connect
-    UI
-    Postgres
-    Jupyter
-    MLflow
-    Airflow
-    Vault
-  end
-```
+</div>
 
-## Servicios y responsabilidades
+---
 
-| Servicio | Rol | Comentarios |
-|---|---|---|
-| `kafka1`, `kafka2`, `kafka3` | Brokers KRaft | Clúster Kafka moderno sin Zookeeper |
-| `kafka-connect` | Debezium Connect | Captura CDC de PostgreSQL |
-| `kafka-ui` | Monitor Kafka | Visualiza topics y mensajes |
-| `postgres` | Fuente de datos | Base de datos `demo` para CDC |
+## 📋 Descripción
 
-## Quick Start
+Stack de **Kafka KRaft** - arquitectura moderna sin coordinador Zookeeper externo.
 
-1. Asegúrate de tener la red Docker externa `mynet`:
+**Beneficios:**
+- ✅ Cluster con 3 brokers independientes
+- ✅ Coordinación integrada
+- ✅ Menor complejidad operacional
+- ✅ Mejor escalabilidad
+
+---
+
+## 🚀 Inicio Rápido
 
 ```powershell
-docker network create mynet --driver bridge
-```
-
-2. Levanta el stack:
-
-```powershell
-cd .\kafka\kafka-kraft
+cd .\\kafka-kraft
 docker compose up -d
-```
-
-3. Verifica containers:
-
-```powershell
 docker compose ps
 ```
 
-4. Crea la tabla de prueba y agrega datos en PostgreSQL.
-5. Despliega el connector en Kafka Connect.
-6. Verifica el topic `cdc.public.clientes` en Kafka UI.
+---
 
-## Puertos relevantes
+## 🛠️ Servicios
 
-| Servicio | Puerto host | Nota |
-|---|---|---|
-| Kafka Broker 1 | `51437` | Broker primario visible desde host |
-| Kafka Broker 2 | `51438` | Broker secundario |
-| Kafka Broker 3 | `51439` | Broker secundario |
-| PostgreSQL | `51440` | BD `demo` |
+| Servicio | Puerto | Rol |
+|----------|--------|-----|
+| **kafka-1** | 9092 | Broker (Controller) |
+| **kafka-2** | 9093 | Broker |
+| **kafka-3** | 9094 | Broker |
+| **debezium** | 8083 | Kafka Connect |
+| **postgres** | 5432 | Source DB |
 
-> Nota: Los puertos de `kafka-ui` y `kafka-connect` están comentados en `docker-compose.yml`. Si no usas el proxy `web`, descoméntalos para acceso directo.
+---
 
-## Diferencias clave con Zookeeper
+## 💼 Uso
 
-| Aspecto | KRaft | Zookeeper |
-|---|---|---|
-| Coordinación | Interna | Externa (Zookeeper) |
-| Complejidad | Menor | Mayor |
-| Escalabilidad | Mejor para nuevos clusters | Recomendado solo para legacy |
-| Configuración | 3 brokers con roles de controlador incluidos | Broker único con Zookeeper separado |
-| Recomendado para | Nuevos laboratorios y proyectos | Validación de compatibilidad legacy |
-
-## Uso del consumidor
-
-Utiliza el script localizado en esta carpeta:
-
+### Crear topic
 ```powershell
-python .\consumidor-kraft.py
+docker compose exec kafka-1 kafka-topics \
+  --bootstrap-server localhost:9092 \
+  --create --topic my-topic \
+  --partitions 3 --replication-factor 2
 ```
 
-### Ejemplo de ejecución
-
+### Listar topics
 ```powershell
-python .\consumidor-kraft.py --bootstrap-servers localhost:51437 --topic cdc.public.clientes --verbose
+docker compose exec kafka-1 kafka-topics --bootstrap-server localhost:9092 --list
 ```
 
-## Checklist esencial
+### Producir
+```powershell
+docker compose exec kafka-1 kafka-console-producer \
+  --bootstrap-server localhost:9092 --topic my-topic
+```
 
-- [ ] Red `mynet` creada
-- [ ] Containers levantados con `docker compose up -d`
-- [ ] Tabla `clientes` creada en PostgreSQL
-- [ ] Connector Debezium desplegado
-- [ ] Topic `cdc.public.clientes` presente
-- [ ] Consumer Python recibiendo mensajes en tiempo real
+### Consumir
+```powershell
+docker compose exec kafka-1 kafka-console-consumer \
+  --bootstrap-server localhost:9092 --topic my-topic --from-beginning
+```
 
-## Configuración y credenciales
+### Script Python
+```powershell
+python .\\consumidor-kraft.py
+```
 
-- Revisa `config.md` para los parámetros específicos del stack.
-- Todas las credenciales están centralizadas en el root: `..\credenciales.md`.
+---
+
+## 🔄 CDC - Change Data Capture
+
+### Crear conector PostgreSQL
+```bash
+curl -X POST http://localhost:8083/connectors \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "postgres-connector",
+    "config": {
+      "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+      "database.hostname": "postgres",
+      "database.port": 5432,
+      "database.user": "postgres",
+      "database.password": "postgres",
+      "database.dbname": "demo",
+      "database.server.name": "demo",
+      "plugin.name": "pgoutput"
+    }
+  }'
+```
+
+### Ver conectores
+```bash
+curl http://localhost:8083/connectors
+```
+
+### Consumir eventos CDC
+```powershell
+docker compose exec kafka-1 kafka-console-consumer \
+  --bootstrap-server localhost:9092 \
+  --topic demo.public.tabla_nombre \
+  --from-beginning
+```
+
+---
+
+## 🛑 Operaciones
+
+### Detener
+```powershell
+docker compose down
+```
+
+### Limpiar (⚠️ borra datos)
+```powershell
+docker compose down -v
+```
+
+### Ver logs
+```powershell
+docker compose logs -f kafka-1
+```
+
+---
+
+## ✋ Problemas
+
+| Problema | Solución |
+|----------|----------|
+| ❌ Broker no inicia | `docker compose logs kafka-1` |
+| ❌ Brokers offline | Verificar `mynet` |
+| ❌ Topic no se crea | Esperar 30-60 seg |
+| ❌ CDC no funciona | Ver Debezium: `curl http://localhost:8083/connectors` |
+
+---
+
+## 📚 Recursos
+
+- [Kafka KRaft](https://kafka.apache.org/documentation/#kraft)
+- [Debezium PostgreSQL](https://debezium.io/documentation/reference/latest/connectors/postgresql.html)
+
+---
+
+<div align="center">
+
+[⬆ Arriba](#-kafka-kraft-stack) • [📨 Zookeeper](../kafka-zookeeper/README.md) • [← Kafka](../README.md)
+
+</div>
