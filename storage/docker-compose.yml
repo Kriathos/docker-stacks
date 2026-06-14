@@ -1,0 +1,80 @@
+version: '3.9'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    restart: always
+    environment:
+      SA_PASSWORD: "2613LApf.msql"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "51430:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  db2:
+    image: ibmcom/db2
+    container_name: db2
+    restart: always
+    privileged: true
+    environment:
+      DB2INST1_PASSWORD: "2613LApf.db2"
+      LICENSE: "accept"
+      DBNAME: "SAMPLE"
+    ports:
+      - "51431:50000"
+    volumes:
+      - db2_data:/database
+
+  sftpgo:
+    image: drakkan/sftpgo:latest
+    container_name: sftpgo
+    restart: always
+    ports:
+      - "51432:2022"
+      # - "51433:51433"
+    volumes:
+      - F:/sftp:/srv/sftpgo
+      - F:/sftpgo-data:/var/lib/sftpgo
+    environment:
+      SFTPGO_DATA_PROVIDER__DRIVER: sqlite
+      SFTPGO_HTTPD__BINDINGS__0__PORT: 51500
+    command: >
+      sftpgo serve
+    networks:
+      - mynet
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: 2613LApf.minio
+    # ports:
+    #   - "51434:9000"
+    #   - "51435:9001"
+    volumes:
+      - F:/minio-data:/data
+    networks:
+      - mynet
+
+  file-server:
+    image: httpd:2.4
+    container_name: apache-fileserver
+    # ports:
+    #   - "51436:80"
+    volumes:
+      - "F:/apache-fileserver:/usr/local/apache2/htdocs/"
+    networks:
+      - mynet
+
+volumes:
+  sqlserver_data:
+  db2_data:
+
+networks:
+  mynet:
+    external: true

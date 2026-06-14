@@ -1,0 +1,22 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Vault storage and local tokens
+databricks/vault/data/
+databricks/tokens.txt
+
+# Large binaries and backups
+databricks/jars/
+storage/SQL Server/*.bak
+
+# Editor temp files
+*.swp
+*.swo
+*.DS_Store
+storage/SQL Server/CarSalesData.csv

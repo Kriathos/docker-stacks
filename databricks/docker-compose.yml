@@ -1,0 +1,154 @@
+version: "3.9"
+
+services:
+  spark:
+    image: apache/spark:3.5.0
+    container_name: spark
+    hostname: spark
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master"]
+    environment:
+      - SPARK_MODE=master
+    volumes:
+      - spark_data:/opt/spark/data
+      - spark_parquet:/opt/spark/parquet
+      - ./jars:/opt/spark/jars-extra
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+    networks:
+      - mynet
+
+  spark-worker:
+    image: apache/spark:3.5.0
+    container_name: spark-worker
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark:7077"]
+    depends_on:
+      - spark
+    volumes:
+      - spark_parquet:/opt/spark/parquet
+      - ./jars:/opt/spark/jars-extra
+    networks:
+      - mynet
+
+  jupyter:
+    image: apache/spark:3.5.0
+    container_name: jupyter
+    user: root
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        pip install jupyter jupyterlab pyspark==3.5.0 delta-spark==3.0.0 hvac --quiet &&
+        jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root \
+          --IdentityProvider.token='mytoken' \
+          --ServerApp.allow_origin='*' \
+          --ServerApp.allow_remote_access=True \
+          --ServerApp.root_dir=/home/jovyan/work
+    environment:
+      - JAVA_HOME=/opt/java/openjdk
+      - SPARK_HOME=/opt/spark
+      - PYSPARK_PYTHON=/usr/local/bin/python3
+      - PYSPARK_DRIVER_PYTHON=/usr/local/bin/python3
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - spark_parquet:/opt/spark/parquet
+      - ./jars:/opt/spark/jars-extra
+      - ./mlruns:/mlruns
+    ports:
+      - "8888:8888"
+    networks:
+      - mynet
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: mlflow
+    environment:
+      BACKEND_STORE_URI: sqlite:///mlflow.db
+      DEFAULT_ARTIFACT_ROOT: /mlruns
+    volumes:
+      - ./mlruns:/mlruns
+    command: [
+      "mlflow", "server",
+      "--backend-store-uri", "sqlite:///mlflow.db",
+      "--default-artifact-root", "/mlruns",
+      "--host", "0.0.0.0",
+      "--port", "5000",
+      "--allowed-hosts", "mlflow.luispicado.com,localhost"
+    ]
+    networks:
+      - mynet
+
+  postgres:
+    image: postgres:15
+    container_name: airflow-postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "51433:5432"
+    networks:
+      - mynet
+
+  # Generar Fernet usar esto:
+  # python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
+  airflow-webserver:
+    image: apache/airflow:2.9.0-python3.11
+    container_name: airflow-webserver
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__FERNET_KEY: "NXZKVV3HFKknH-Fube6KoB5qoInHRcQvWvhYdNoH-W0="
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+    command: ["airflow", "webserver"]
+    ports:
+      - "8081:8080"
+    networks:
+      - mynet
+
+  airflow-scheduler:
+    image: apache/airflow:2.9.0-python3.11
+    container_name: airflow-scheduler
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__FERNET_KEY: "NXZKVV3HFKknH-Fube6KoB5qoInHRcQvWvhYdNoH-W0="
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+    command: ["airflow", "scheduler"]
+    networks:
+      - mynet
+
+  vault:
+    image: hashicorp/vault:latest
+    container_name: vault
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: root
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./vault/data:/vault/data
+      - ./vault/config:/vault/config
+    command: vault server -config=/vault/config/config.hcl    
+    # ports:
+    #   - "8200:8200"
+    networks:
+      - mynet
+
+volumes:
+  postgres_data:
+  spark_data:
+  spark_parquet:
+
+networks:
+  mynet:
+    external: true

@@ -1,0 +1,104 @@
+# ==========================================================
+# Apertura de Puertos PICAFER
+# ==========================================================
+Se solicita la apertura de puertos por el Modem Kolbi Hogar
+
+- IP Publica PICAFER: 201.192.135.112
+- Puertos: 80, 443, 51430, 51431, 51432, 51433, 51434, 51435, 51436, 51437, 51438, 51439, 51440
+- Protocolo: TCP
+- IP Interna Kriathos-PC: 192.168.100.100
+- Puertos Internos: 51500 en adelante
+
+---------------------------------------------------------------------------------------------
+SERVICIO      | EXTERNO | INTERNO   | URL_SUBDOMINIO           | DETALLE
+---------------------------------------------------------------------------------------------
+ngnix	      | 80:443  | 80:443    | luispicado.com	       | Ngnix - Reverse Proxy (HTTP)
+
+msql	      | 51430   | 1433      | msql.luispicado.com      | Microsoft SQL Server (TCP)
+db2	      | 51431   | 50000     | db2.luispicado.com       | DB2 (TCP)
+sftpgo	      | 51432   | 2022      | sftp.luispicado.com      | SFTP (TCP)
+sftpgo        | -       | 51500     | sftp.luispicado.com      | SFTP (HTTP)
+minio         | -       | 9000      | minio-api.luispicado.com | Minio API (HTTP)
+minio         | -       | 9001      | minio.luispicado.com     | Minio (HTTP)
+apache-file   | -       | 80        | data.luispicado.com      | Apache File Server (HTTP)
+
+spark-master  | -       | 7077      | -                        | Apache Spark Master (N/A)
+spark-master  | -       | 8080      | spark.luispicado.com     | Apache Spark Master (HTTP)
+spark-worker  | -       | -         | -                        | Apache Spark Worker (N/A)
+jupyter       | -       | 8888      | jupyter.luispicado.com   | Apache Spark (Jupyter | PySpark | Delta) (HTTP)
+mlflow        | -       | 5000      | mlflow.luispicado.com    | MLFlow (HTTP)
+airflow       | 51433   | 5432      | postgres.luispicado.com  | PostgreSQL Airflow (TCP)
+airflow       | -       | 8081:8080 | airflow.luispicado.com   | Airflow Webserver (HTTP)
+airflow       | -       | -         | -                        | Airflow Scheduler (N/A)
+hashi-vault   | -       | 8200      | vault.luispicado.com     | Hashicorp Vault CLI/SDK (HTTP)
+
+zookeeper     | -       | 2181      | -                        | Zookeeper (N/A)
+kafka         | 51435   | 9092      | zoo.luispicado.com       | Kafka Broker (Kafka)
+kafka-ui      | -       | 8080      | zoo-ui.luispicado.com    | Kafka UI (HTTP)
+kafka-connect | -       | 8083      | zoo-api.luispicado.com   | Kafka Connect API (HTTP)
+postgres      | 51436   | 5432      | postgres.luispicado.com  | PostgreSQL (TCP)
+
+kafka1        | 51437   | 9092      | kraft.luispicado.com     | Kafka Broker (Kafka)
+kafka2        | 51438   | 9092      | kraft.luispicado.com     | Kafka Broker (Kafka)
+kafka3        | 51439   | 9092      | kraft.luispicado.com     | Kafka Broker (Kafka)
+kafka-ui      | -       | 8080      | kraft-ui.luispicado.com  | Kafka UI (HTTP)
+kafka-connect | -       | 8083      | kraft-api.luispicado.com | Kafka Connect API (HTTP)
+postgres      | 51440   | 5432      | postgres.luispicado.com  | PostgreSQL (TCP)
+
+# ==========================================================
+# Credenciales
+# ==========================================================
+
+SQL Server
+- msql.luispicado.com,51430
+- sa | 2613LApf.msql
+- sql_userbll | bll.1234!
+
+DB2
+- db2.luispicado.com,51431
+- db2inst1 | 2613LApf.db2
+- dbuserbll | bll.1234!
+- db2_userbll | bll.1234!
+
+SFTP
+- SFTP: sftp.luispicado.com,51432
+- Web: http://sftp.luispicado.com
+- admin | 2613LApf
+- luis.picado | 15006364
+- sftp_userbll | bll.1234!
+
+Minio
+- API: http://minio-api.luispicado.com
+- Web: http://minio.luispicado.com
+- admin | 2613LApf.minio
+- sparkuser | sparkpass123
+
+Apache File Server
+- http://data.luispicado.com
+
+Airflow PostgreSQL
+- postgres.luispicado.com,51433
+- airflow | airflow
+- BD: airflow
+
+Airflow Webserver
+- Web: http://airflow.luispicado.com
+- admin | admin
+
+Jupyter
+- Web: http://jupyter.luispicado.com
+- Token: mytoken
+- Pass: 15006364
+
+Hashicorp Vault
+- Token: root
+
+Zookeeper PostgreSQL
+- postgres.luispicado.com,51436
+- postgres | postgres
+- BD: demo
+
+Kraft PostgreSQL
+- postgres.luispicado.com,51440
+- postgres | postgres
+- BD: demo
