@@ -29,6 +29,8 @@ Stack de **Nginx** como proxy inverso centralizado para todos los servicios.
 
 ## 🚀 Inicio Rápido
 
+> **Prerrequisito:** crea `nginx.conf` siguiendo la guía en [config.md](config.md) antes de levantar el stack.
+
 ```powershell
 cd .\\web
 docker compose up -d
@@ -58,6 +60,12 @@ docker compose ps
 ---
 
 ## ⚙️ Configuración
+
+### nginx.conf
+
+El archivo de configuración de Nginx **no está versionado** porque contiene dominios locales personales. Debes crearlo antes de levantar el stack.
+
+📖 [Guía completa para crear nginx.conf](config.md) — template, explicación de cada bloque, WebSocket y validación.
 
 ### Archivo hosts Windows
 
@@ -111,23 +119,22 @@ http://kraft-ui.dominio.com
 
 ### Configurar nuevas rutas
 
-Editar `nginx.conf`:
-```nginx
-upstream mi_servicio {
-    server mi-contenedor:puerto;
-}
+Agrega un bloque `server` en `nginx.conf` (ver [config.md](config.md) para el template completo):
 
+```nginx
 server {
     listen 80;
-    server_name mi-servicio.dominio.com;
-    
+    server_name mi-servicio.tu-dominio.com;
+
     location / {
-        proxy_pass http://mi_servicio;
+        proxy_pass http://nombre-contenedor:puerto-interno;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
     }
 }
 ```
 
-Recargar:
+Recargar sin reiniciar el contenedor:
 ```powershell
 docker compose exec nginx nginx -s reload
 ```
@@ -223,11 +230,14 @@ docker network inspect mynet
 
 - [Nginx Documentation](https://nginx.org/en/docs/)
 - [Nginx Proxy Config](https://nginx.org/en/docs/http/ngx_http_proxy_module.html)
+- [⚙️ Guía nginx.conf de este proyecto](config.md)
 
 ---
 
 <div align="center">
 
-[⬆ Arriba](#-web-stack) • [← Proyecto Principal](../README.md)
+[⬆ Arriba](#-web-stack) • [← Proyecto Principal](../README.md) • [⚙️ nginx.conf Guide](config.md)
+
+**Stacks relacionados:** [🔬 Databricks](../databricks/README.md) • [📨 Kafka](../kafka/README.md) • [💾 Storage](../storage/README.md)
 
 </div>

@@ -182,7 +182,7 @@ Con Debezium Connect para CDC desde PostgreSQL.
 - Enrutamiento por hostnames locales
 - Orquestación de tráfico entre stacks
 
-📖 [Documentación completa](web/README.md)
+📖 [Documentación completa](web/README.md) • ⚙️ [Crear nginx.conf](web/config.md)
 
 ---
 
@@ -197,6 +197,7 @@ Con Debezium Connect para CDC desde PostgreSQL.
 | [`kafka/`](kafka/) | Stack de mensajería y streaming |
 | [`storage/`](storage/) | Stack de almacenamiento y bases de datos |
 | [`web/`](web/) | Proxy Nginx e integración |
+| [`web/config.md`](web/config.md) | ⚙️ Template y guía para crear `nginx.conf` |
 
 ---
 

@@ -158,6 +158,6 @@ docker compose logs -f kafka-1
 
 <div align="center">
 
-[⬆ Arriba](#-kafka-kraft-stack) • [📨 Zookeeper](../kafka-zookeeper/README.md) • [← Kafka](../README.md)
+[⬆ Arriba](#-kafka-kraft-stack) • [📨 Zookeeper Stack](../kafka-zookeeper/README.md) • [← Kafka](../README.md) • [← Proyecto Principal](../../README.md)
 
 </div>

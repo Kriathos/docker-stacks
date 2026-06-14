@@ -140,89 +140,48 @@ docker compose logs -f kafka
 | Problema | Solución |
 |----------|----------|
 | ❌ Zookeeper offline | `docker compose logs zookeeper` |
-| ❌ Broker no conecta | Verifica Zookeeper primero |
-| ❌ Topics no persisten | Revisar volúmenes |
+| ❌ Broker no conecta | Verifica que Zookeeper esté en `Up` primero |
+| ❌ Topics no persisten | Revisar que los volúmenes estén configurados |
+| ❌ CDC no arranca | `curl http://localhost:8083/connectors` para ver estado |
+
+---
+
+## 📌 Puertos del stack
+
+| Servicio | Puerto host | Nota |
+|----------|-------------|------|
+| Kafka broker | `51435` | Broker principal |
+| PostgreSQL | `51436` | Base `demo` para CDC |
+
+> Para exponer Kafka UI o Kafka Connect directamente, descomenta sus puertos en `docker-compose.yml`.
+
+---
+
+## ✅ Checklist de validación
+
+Usa esta lista para verificar que el stack quedó completamente operativo:
+
+- [ ] Red `mynet` creada: `docker network create mynet --driver bridge`
+- [ ] Contenedores en estado `Up`: `docker compose ps`
+- [ ] Zookeeper responde antes que Kafka
+- [ ] Tabla de prueba creada en PostgreSQL
+- [ ] Connector Debezium desplegado: `curl http://localhost:8083/connectors`
+- [ ] Topic CDC visible en Kafka UI
+- [ ] Consumer recibiendo mensajes en tiempo real
 
 ---
 
 ## 📚 Recursos
 
 - [Apache Kafka](https://kafka.apache.org/)
-- [Zookeeper](https://zookeeper.apache.org/)
+- [Apache Zookeeper](https://zookeeper.apache.org/)
 - [Debezium](https://debezium.io/)
+- [Credenciales del proyecto](../../credenciales.md)
 
 ---
 
 <div align="center">
 
+[⬆ Arriba](#-kafka--zookeeper-stack) • [⚡ KRaft Stack](../kafka-kraft/README.md) • [← Kafka](../README.md) • [← Proyecto Principal](../../README.md)
 
-
-1. Crea la red Docker `mynet`:
-
-```powershell
-docker network create mynet --driver bridge
-```
-
-2. Levanta el stack:
-
-```powershell
-cd .\kafka\kafka-zookeeper
-docker compose up -d
-```
-
-3. Verifica que los servicios estén en `Up`:
-
-```powershell
-docker compose ps
-```
-
-4. Crea la tabla de prueba en PostgreSQL.
-5. Despliega el connector en Kafka Connect.
-6. Confirma el topic `cdc.public.clientes` en Kafka UI.
-
-## Puertos relevantes
-
-| Servicio | Puerto host | Nota |
-|---|---|---|
-| Kafka broker | `51435` | Broker principal |
-| PostgreSQL | `51436` | Base `demo` |
-
-> Si deseas acceso directo a Kafka UI o Kafka Connect, descomenta los puertos en `docker-compose.yml`.
-
-## KRaft vs Zookeeper
-
-| Pregunta | KRaft | Zookeeper |
-|---|---|---|
-| ¿Requiere Zookeeper? | No | Sí |
-| ¿Ideal para nuevos proyectos? | Sí | No, solo compatibilidad legacy |
-| ¿Número de brokers mínimo? | 3 | 1+ |
-| ¿Complejidad de operación? | Menor | Mayor |
-| ¿Uso en este repo? | `kafka-kraft` | `kafka-zookeeper` |
-
-## Uso del consumidor
-
-Ejecuta el script específico de este stack:
-
-```powershell
-python .\consumidor-zookeeper.py
-```
-
-### Ejemplo de ejecución
-
-```powershell
-python .\consumidor-zookeeper.py --bootstrap-servers localhost:51435 --topic cdc.public.clientes --verbose
-```
-
-## Checklist esencial
-
-- [ ] `mynet` creada
-- [ ] Containers levantados
-- [ ] Tabla `clientes` creada en PostgreSQL
-- [ ] Connector Debezium desplegado
-- [ ] Topic `cdc.public.clientes` visible en Kafka UI
-- [ ] Consumer recibiendo mensajes en tiempo real
-
-## Configuración y credenciales
-
-- Revisa `config.md` para detalles propios de este stack.
-- Las credenciales del proyecto se almacenan en el root: `..\credenciales.md`.
+</div>

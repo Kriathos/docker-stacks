@@ -11,8 +11,6 @@ __pycache__/
 databricks/vault/data/
 databricks/tokens.txt
 
-# Configuracion de Ngnix
-web/nginx.conf
 
 # Archivos de Kafka
 kafka/old/
