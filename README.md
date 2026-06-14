@@ -1,180 +1,289 @@
-# Windows Code Docker Stacks
+# 🐳 Docker Stacks
 
-Docker stacks de prueba para un entorno controlado en Windows. Cada carpeta representa un stack independiente con su propio `docker-compose.yml` y servicios relacionados.
+<div align="center">
 
-## Propósito del proyecto
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/Docker%20Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%2B%20WSL2-blue?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square)
 
-Este repositorio agrupa varios laboratorios Docker para aprender, probar y validar arquitecturas de datos, mensajería y servicios de infraestructura.
+**Laboratorio integrado de datos, mensajería e infraestructura con Docker Compose**
 
-- `databricks/`: Spark local, Jupyter, MLflow, Airflow, Vault, PostgreSQL y almacenamiento de metadatos.
-- `kafka/`: Kafka KRaft, Kafka con Zookeeper, Debezium Connect, PostgreSQL CDC y consumidores Python.
-- `storage/`: SQL Server, DB2, SFTPGo, MinIO y servidor de archivos Apache.
-- `web/`: Nginx reverse proxy/gateway para exponer servicios internos de los demás stacks.
+[Descripción](#descripción) • [Características](#características) • [Requisitos](#requisitos) • [Inicio Rápido](#inicio-rápido) • [Stacks](#stacks) • [Documentación](#documentación)
 
-## Tags
+</div>
 
-`docker` `docker-compose` `windows` `spark` `mlflow` `airflow` `vault` `kafka` `debezium` `postgres` `sqlserver` `db2` `minio` `nginx` `sftp` `reverse-proxy`
+---
 
-## Introducción
+## Descripción
 
-Este README es el corazón del proyecto. Aquí encuentras la visión global, el flujo de arranque, los enlaces clave a cada stack y el contexto necesario para usar el repositorio con coherencia.
+Laboratorio completo de Docker Compose para Windows con múltiples stacks independientes pero interconectados. Cada stack representa una arquitectura diferente (datos, mensajería, almacenamiento) que puedes usar de forma aislada o integrada mediante una red Docker compartida.
 
-## Arquitectura global
+**Perfecto para:**
+- 🎓 Aprendizaje de arquitecturas de datos
+- 🧪 Validación de flujos de integración  
+- 📊 Experimentación con streaming y CDC
+- 🔬 Laboratorios controlados en tu máquina local
+- 🏗️ Prototipos de infraestructura moderna
+
+## Características
+
+| Stack | Tecnologías | Caso de uso |
+|-------|-------------|-----------|
+| **databricks** | Spark • Jupyter • MLflow • Airflow • Vault • PostgreSQL | Análisis de datos y ML local |
+| **kafka** | Kafka KRaft • Zookeeper • Debezium • PostgreSQL CDC | Mensajería, streaming y CDC |
+| **storage** | SQL Server • DB2 • MinIO • SFTPGo • Apache | Almacenamiento polivalente |
+| **web** | Nginx | Proxy inverso y orquestación |
+
+---
+
+## Arquitectura
 
 ```mermaid
 flowchart TB
-  Browser[Browser / Cliente] -->|HTTP / hostnames| Web[Nginx proxy `web/`]
-  subgraph DataStacks[Stacks de datos]
-    Databricks[databricks/]
-    Kafka[kafka/]
-    Storage[storage/]
+  Browser[🌐 Browser/Cliente] -->|HTTP + hostnames| Web[📡 Nginx proxy]
+  Web --> Databricks[🔬 Databricks Stack]
+  Web --> Kafka[📨 Kafka Stack]
+  Web --> Storage[💾 Storage Stack]
+  
+  Kafka -->|CDC/eventos| Databricks
+  Storage -->|persistencia| Databricks
+  Storage -->|archivos| Web
+  
+  subgraph Network["🌉 Red Docker Compartida: mynet"]
+    direction LR
+    Databricks
+    Kafka
+    Storage
+    Web
   end
-  Web --> Databricks
-  Web --> Kafka
-  Web --> Storage
-  Kafka -->|CDC / eventos| Databricks
-  Storage -->|persistencia y objetos| Databricks
-  Storage -->|archivos estáticos| Web
-  subgraph Network[Red]
-    mynet[mynet Docker network]
-  end
-  Web --- mynet
-  Databricks --- mynet
-  Kafka --- mynet
-  Storage --- mynet
+  
+  classDef stack fill:#4a90e2,stroke:#2c5aa0,color:#fff
+  classDef infra fill:#50e3c2,stroke:#2a9d7f,color:#fff
+  class Databricks,Kafka,Storage stack
+  class Web infra
 ```
 
-## Índice de documentación
+---
 
-- [`README.md`](README.md) — este documento principal.
-- [`credenciales.md`](credenciales.md) — credenciales centralizadas del repositorio.
-- [`config.md`](config.md) — configuración global, hosts y recomendaciones de entorno.
-- [`databricks/README.md`](databricks/README.md) — detalles del stack de datos y ML.
-- [`databricks/config.md`](databricks/config.md) — configuraciones específicas del stack databricks.
-- [`kafka/README.md`](kafka/README.md) — guía general del stack Kafka.
-- [`kafka/config.md`](kafka/config.md) — parámetros y notas de configuración de Kafka.
-- [`kafka/kafka-kraft/README.md`](kafka/kafka-kraft/README.md) — Kafka KRaft.
-- [`kafka/kafka-zookeeper/README.md`](kafka/kafka-zookeeper/README.md) — Kafka tradicional con Zookeeper.
-- [`storage/README.md`](storage/README.md) — detalles del stack de almacenamiento.
-- [`storage/config.md`](storage/config.md) — configuración de volúmenes y rutas Windows.
-- [`web/README.md`](web/README.md) — uso del proxy Nginx y hostnames locales.
-- [`web/config.md`](web/config.md) — configuraciones adicionales de Nginx.
+## Requisitos
 
-## Requisitos previos
+### Obligatorios
+- ✅ **Docker Desktop** para Windows
+- ✅ **WSL2** habilitado
+- ✅ **PowerShell 5.0+** o PowerShell Core
 
-- Docker Desktop instalado
-- WSL2 habilitado en Windows
-- Red Docker externa llamada `mynet`
-- Carpetas locales existentes para los volúmenes de `storage/`
-- Opcional: entradas en `C:\Windows\System32\drivers\etc\hosts` para nombres de host locales
-
-## Inicio rápido
-
-1. Crear la red Docker compartida:
-
+### Red compartida
 ```powershell
 docker network create mynet --driver bridge
 ```
 
-2. Iniciar el proxy `web` (recomendado para hostnames locales):
+### Configuración de hosts (opcional pero recomendado)
+Edita `C:\Windows\System32\drivers\etc\hosts`:
+```
+127.0.0.1 sftp.luispicado.com
+127.0.0.1 minio.luispicado.com
+127.0.0.1 jupyter.luispicado.com
+127.0.0.1 mlflow.luispicado.com
+127.0.0.1 airflow.luispicado.com
+127.0.0.1 vault.luispicado.com
+127.0.0.1 kraft-ui.luispicado.com
+127.0.0.1 zoo-ui.luispicado.com
+```
 
+---
+
+## Inicio Rápido
+
+### 1. Preparar el entorno
+```powershell
+# Crear la red compartida
+docker network create mynet --driver bridge
+
+# Navegar al repositorio
+cd c:\Users\luisp\windows-code
+```
+
+### 2. Iniciar el proxy Nginx (recomendado)
 ```powershell
 cd .\web
 docker compose up -d
 ```
 
-3. Arrancar los stacks según tu objetivo:
+### 3. Iniciar los stacks según necesidad
 
-- `databricks/` para análisis y ML local
-- `storage/` para bases de datos y almacenamiento local
-- `kafka/` para mensajería y CDC con Kafka
-
-4. Verificar el estado de los contenedores:
-
+**Para trabajar con datos y ML:**
 ```powershell
-docker compose ps
-```
-
-## Acceso y hostnames
-
-Para acceder a los servicios internos mediante nombres amigables, agrega estas líneas al archivo `hosts` de Windows:
-
-```text
-127.0.0.1 sftp.luispicado.com
-127.0.0.1 minio.luispicado.com
-127.0.0.1 minio-api.luispicado.com
-127.0.0.1 data.luispicado.com
-127.0.0.1 kraft-ui.luispicado.com
-127.0.0.1 kraft-api.luispicado.com
-127.0.0.1 zoo-ui.luispicado.com
-127.0.0.1 zoo-api.luispicado.com
-127.0.0.1 jupyter.luispicado.com
-127.0.0.1 mlflow.luispicado.com
-127.0.0.1 airflow.luispicado.com
-127.0.0.1 vault.luispicado.com
-127.0.0.1 spark.luispicado.com
-```
-
-## Stacks principales
-
-| Stack | Contenido | Uso típico | Documentación |
-|---|---|---|---|
-| `databricks/` | Spark, Jupyter, MLflow, Airflow, Vault, PostgreSQL | Laboratorio de datos y ML | `databricks/README.md` |
-| `kafka/` | Kafka KRaft y Zookeeper, Debezium, PostgreSQL CDC | Mensajería, streaming y CDC | `kafka/README.md` |
-| `storage/` | SQL Server, DB2, MinIO, SFTPGo, Apache | Almacenamiento y bases de datos | `storage/README.md` |
-| `web/` | Nginx reverse proxy para servicios locales | Exposición de servicios y hostnames | `web/README.md` |
-
-## Enfoque del proyecto
-
-Este repositorio está pensado como un laboratorio de ingeniería de datos e integración. No está diseñado para producción, pero sí para:
-
-- probar flujos de datos desde bases de datos a Kafka,
-- validar arquitecturas de datos locales en Windows,
-- exponer entornos de prueba mediante un proxy central,
-- practicar con stacks separados y conectados por red.
-
-## Operación básica
-
-```powershell
-cd .\<stack>
+cd .\databricks
 docker compose up -d
 ```
 
-Para detener y limpiar datos temporales:
-
+**Para mensajería y streaming:**
 ```powershell
+cd .\kafka
+docker compose up -d
+```
+
+**Para bases de datos y almacenamiento:**
+```powershell
+cd .\storage
+docker compose up -d
+```
+
+### 4. Verificar servicios
+```powershell
+docker compose ps
+docker network ls
+```
+
+---
+
+## Stacks Disponibles
+
+### 🔬 Databricks Stack
+**Análisis de datos, ML y orquestación local**
+
+- Apache Spark
+- Jupyter Notebook
+- MLflow (tracking de experimentos)
+- Airflow (orquestación)
+- HashiCorp Vault (gestión de secretos)
+- PostgreSQL
+
+📖 [Documentación completa](databricks/README.md)
+
+### 📨 Kafka Stack
+**Mensajería, streaming y Change Data Capture**
+
+Incluye dos arquitecturas:
+- **KRaft**: Cluster Kafka moderno sin Zookeeper (3 brokers)
+- **Zookeeper**: Stack tradicional con Zookeeper + Kafka
+
+Con Debezium Connect para CDC desde PostgreSQL.
+
+📖 [Documentación completa](kafka/README.md)
+
+### 💾 Storage Stack
+**Bases de datos y almacenamiento**
+
+- SQL Server (MSSQL) con bases de datos de muestra
+- IBM DB2
+- MinIO (S3 compatible)
+- SFTPGo (servidor SFTP)
+- Apache HTTP Server
+
+📖 [Documentación completa](storage/README.md)
+
+### 📡 Web Stack
+**Proxy inverso y orquestación**
+
+- Nginx como reverse proxy centralizado
+- Enrutamiento por hostnames locales
+- Orquestación de tráfico entre stacks
+
+📖 [Documentación completa](web/README.md)
+
+---
+
+## Documentación
+
+| Archivo | Descripción |
+|---------|-----------|
+| [`README.md`](README.md) | Este documento - guía principal |
+| [`credenciales.md`](credenciales.md) | 🔐 Credenciales centralizadas de todos los stacks |
+| [`config.md`](config.md) | ⚙️ Configuración global, hosts y variables de entorno |
+| [`databricks/`](databricks/) | Stack de datos, ML y análisis |
+| [`kafka/`](kafka/) | Stack de mensajería y streaming |
+| [`storage/`](storage/) | Stack de almacenamiento y bases de datos |
+| [`web/`](web/) | Proxy Nginx e integración |
+
+---
+
+## Uso Común
+
+### Detener un stack
+```powershell
+cd .\<stack>
 docker compose down
 ```
 
-Para eliminar volúmenes persistentes:
-
+### Limpiar volúmenes (⚠️ borra datos)
 ```powershell
+cd .\<stack>
 docker compose down -v
 ```
 
-## Configuración centralizada
+### Ver logs en vivo
+```powershell
+cd .\<stack>
+docker compose logs -f <servicio>
+```
 
-- `credenciales.md` contiene todas las credenciales definidas en los `docker-compose.yml`.
-- `config.md` agrupa la configuración global de hosts y red.
+### Ejecutar comando en contenedor
+```powershell
+docker compose exec <servicio> <comando>
+```
 
-## Buenas prácticas
+---
 
-- No copies contraseñas en los README individuales; usa `credenciales.md`.
-- Cambia los secretos antes de compartir el repositorio.
-- Conserva `mynet` como la red compartida de todos los stacks.
-- Usa `web/` para exponer servicios de forma ordenada y con hostnames.
+## Seguridad
 
-## Diagnóstico rápido
+⚠️ **Importante:** Este repositorio contiene credenciales de laboratorio. 
 
-| Síntoma | Acción |
-|---|---|
-| No hay comunicación entre stacks | Verifica que la red `mynet` exista y que los servicios estén conectados a ella |
-| Servicio no inicia | `docker compose logs -f` en la carpeta del stack correspondiente |
-| Acceso a host local falla | Comprueba el archivo `hosts` y el proxy `web` |
-| Contenedores no aparecen | Ejecuta `docker compose ps` desde la carpeta del stack |
+- Todas las credenciales están centralizadas en [`credenciales.md`](credenciales.md)
+- **Antes de publicar**, reemplaza los valores por secrets seguros
+- Usa gestión de secretos en producción
+- No commits tokens o contraseñas reales
 
-## Nota de seguridad
+---
 
-Las contraseñas y tokens de `credenciales.md` se extraen directamente de los `docker-compose.yml`. Si publicas el repositorio, reemplaza estos valores por secrets seguros y usa mecanismos de gestión de secretos cuando sea posible.
+## Solución de Problemas
+
+| Problema | Solución |
+|----------|----------|
+| ❌ Servicios no se comunican | Verifica que todos estén en `mynet`: `docker network inspect mynet` |
+| ❌ Contenedor no inicia | Revisa logs: `docker compose logs -f <servicio>` |
+| ❌ Hostnames no resuelven | Comprueba archivo `hosts` y que Nginx esté corriendo |
+| ❌ Puerto en uso | Cambiar puerto en `docker-compose.yml` o parar contenedor conflictivo |
+| ❌ Sin conexión a internet en contenedor | Verificar configuración DNS de Docker |
+
+---
+
+## Casos de Uso
+
+### 📚 Aprendizaje
+Perfecto para estudiar arquitecturas de datos sin cloud.
+
+### 🧪 Pruebas de concepto
+Valida flujos de integración antes de producción.
+
+### 🔬 Experimentación
+Laboratorio aislado para probar nuevas herramientas.
+
+### 📊 Desarrollo local
+Entorno reproducible para desarrollo en Windows.
+
+---
+
+## Tecnologías Incluidas
+
+`Docker` `Docker Compose` `Spark` `Kafka` `Debezium` `PostgreSQL` `SQL Server` `MinIO` `Jupyter` `MLflow` `Airflow` `Vault` `Nginx` `Python` `DB2` `SFTPGo`
+
+---
+
+## Licencia
+
+MIT License - Libre para uso educativo y de laboratorio.
+
+---
+
+<div align="center">
+
+**Creado como laboratorio de ingeniería de datos en Windows**
+
+[⬆ Volver arriba](#-docker-stacks)
+
+</div>
 
 
