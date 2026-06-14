@@ -16,19 +16,19 @@ El archivo de configuración principal es `nginx.conf`.
 
 Los nombres de host locales mapeados en `nginx.conf` son:
 
-- `sftp.luispicado.com`
-- `minio.luispicado.com`
-- `minio-api.luispicado.com`
-- `data.luispicado.com`
-- `kraft-ui.luispicado.com`
-- `kraft-api.luispicado.com`
-- `zoo-ui.luispicado.com`
-- `zoo-api.luispicado.com`
-- `jupyter.luispicado.com`
-- `mlflow.luispicado.com`
-- `airflow.luispicado.com`
-- `vault.luispicado.com`
-- `spark.luispicado.com`
+- `sftp.dominio.com`
+- `minio.dominio.com`
+- `minio-api.dominio.com`
+- `data.dominio.com`
+- `kraft-ui.dominio.com`
+- `kraft-api.dominio.com`
+- `zoo-ui.dominio.com`
+- `zoo-api.dominio.com`
+- `jupyter.dominio.com`
+- `mlflow.dominio.com`
+- `airflow.dominio.com`
+- `vault.dominio.com`
+- `spark.dominio.com`
 
 ## Requisitos
 

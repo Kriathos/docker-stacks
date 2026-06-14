@@ -11,12 +11,25 @@ __pycache__/
 databricks/vault/data/
 databricks/tokens.txt
 
-# Large binaries and backups
-databricks/jars/
-storage/SQL Server/*.bak
+# Configuracion de Ngnix
+web/nginx.conf
 
-# Editor temp files
+# Archivos de Kafka
+kafka/old/
+kafka/01_setup.py
+kafka/CHECKLIST.md
+kafka/COMANDOS.ps1
+kafka/consumer.py
+kafka/INDEX.md
+kafka/Pruebas Cambios en SQL.sql
+kafka/QUICKSTART.md
+
+# Binarios y Backups
+databricks/jars/
+storage/SQL Server/
+storage/DB2/
+
+# Archivos temporales y de sistema
 *.swp
 *.swo
 *.DS_Store
-storage/SQL Server/CarSalesData.csv

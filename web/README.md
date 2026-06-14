@@ -41,19 +41,19 @@ docker compose ps
 
 | Hostname | Servicio | Descripción |
 |----------|----------|------------|
-| **sftp.luispicado.com** | SFTPGo:8080 | UI SFTP |
-| **minio.luispicado.com** | MinIO:9001 | Consola MinIO |
-| **minio-api.luispicado.com** | MinIO:9000 | API S3 |
-| **data.luispicado.com** | Apache:80 | Archivos estáticos |
-| **kraft-ui.luispicado.com** | Kafka UI KRaft:8080 | Monitor Kafka |
-| **kraft-api.luispicado.com** | Debezium KRaft:8083 | Connect |
-| **zoo-ui.luispicado.com** | Kafka UI Zoo:8080 | Monitor Zoo |
-| **zoo-api.luispicado.com** | Debezium Zoo:8083 | Connect Zoo |
-| **jupyter.luispicado.com** | Jupyter:8888 | Notebooks |
-| **mlflow.luispicado.com** | MLflow:5000 | ML Tracking |
-| **airflow.luispicado.com** | Airflow:8080 | Orquestación |
-| **vault.luispicado.com** | Vault:8200 | Gestión secretos |
-| **spark.luispicado.com** | Spark:8080 | Cluster Spark |
+| **sftp.dominio.com** | SFTPGo:8080 | UI SFTP |
+| **minio.dominio.com** | MinIO:9001 | Consola MinIO |
+| **minio-api.dominio.com** | MinIO:9000 | API S3 |
+| **data.dominio.com** | Apache:80 | Archivos estáticos |
+| **kraft-ui.dominio.com** | Kafka UI KRaft:8080 | Monitor Kafka |
+| **kraft-api.dominio.com** | Debezium KRaft:8083 | Connect |
+| **zoo-ui.dominio.com** | Kafka UI Zoo:8080 | Monitor Zoo |
+| **zoo-api.dominio.com** | Debezium Zoo:8083 | Connect Zoo |
+| **jupyter.dominio.com** | Jupyter:8888 | Notebooks |
+| **mlflow.dominio.com** | MLflow:5000 | ML Tracking |
+| **airflow.dominio.com** | Airflow:8080 | Orquestación |
+| **vault.dominio.com** | Vault:8200 | Gestión secretos |
+| **spark.dominio.com** | Spark:8080 | Cluster Spark |
 
 ---
 
@@ -64,19 +64,19 @@ docker compose ps
 Editar: `C:\Windows\System32\drivers\etc\hosts`
 
 ```text
-127.0.0.1 sftp.luispicado.com
-127.0.0.1 minio.luispicado.com
-127.0.0.1 minio-api.luispicado.com
-127.0.0.1 data.luispicado.com
-127.0.0.1 kraft-ui.luispicado.com
-127.0.0.1 kraft-api.luispicado.com
-127.0.0.1 zoo-ui.luispicado.com
-127.0.0.1 zoo-api.luispicado.com
-127.0.0.1 jupyter.luispicado.com
-127.0.0.1 mlflow.luispicado.com
-127.0.0.1 airflow.luispicado.com
-127.0.0.1 vault.luispicado.com
-127.0.0.1 spark.luispicado.com
+127.0.0.1 sftp.dominio.com
+127.0.0.1 minio.dominio.com
+127.0.0.1 minio-api.dominio.com
+127.0.0.1 data.dominio.com
+127.0.0.1 kraft-ui.dominio.com
+127.0.0.1 kraft-api.dominio.com
+127.0.0.1 zoo-ui.dominio.com
+127.0.0.1 zoo-api.dominio.com
+127.0.0.1 jupyter.dominio.com
+127.0.0.1 mlflow.dominio.com
+127.0.0.1 airflow.dominio.com
+127.0.0.1 vault.dominio.com
+127.0.0.1 spark.dominio.com
 ```
 
 ### Network Docker
@@ -94,19 +94,19 @@ docker network create mynet --driver bridge
 
 ```powershell
 # Jupyter Lab
-http://jupyter.luispicado.com
+http://jupyter.dominio.com
 
 # MinIO Console
-http://minio.luispicado.com
+http://minio.dominio.com
 
 # MLflow
-http://mlflow.luispicado.com
+http://mlflow.dominio.com
 
 # Airflow
-http://airflow.luispicado.com
+http://airflow.dominio.com
 
 # Kafka Monitor
-http://kraft-ui.luispicado.com
+http://kraft-ui.dominio.com
 ```
 
 ### Configurar nuevas rutas
@@ -119,7 +119,7 @@ upstream mi_servicio {
 
 server {
     listen 80;
-    server_name mi-servicio.luispicado.com;
+    server_name mi-servicio.dominio.com;
     
     location / {
         proxy_pass http://mi_servicio;
@@ -142,15 +142,15 @@ flowchart TB
   
   Browser -->|HTTP requests| Nginx["📡 Nginx<br/>Port 80"]
   
-  Nginx -->|sftp.luispicado.com| SFTPGo["SFTPGo"]
-  Nginx -->|minio.luispicado.com| MinIO["MinIO"]
-  Nginx -->|jupyter.luispicado.com| Jupyter["Jupyter"]
-  Nginx -->|mlflow.luispicado.com| MLflow["MLflow"]
-  Nginx -->|airflow.luispicado.com| Airflow["Airflow"]
-  Nginx -->|kraft-ui.luispicado.com| KafkaUI["Kafka UI"]
+  Nginx -->|sftp.dominio.com| SFTPGo["SFTPGo"]
+  Nginx -->|minio.dominio.com| MinIO["MinIO"]
+  Nginx -->|jupyter.dominio.com| Jupyter["Jupyter"]
+  Nginx -->|mlflow.dominio.com| MLflow["MLflow"]
+  Nginx -->|airflow.dominio.com| Airflow["Airflow"]
+  Nginx -->|kraft-ui.dominio.com| KafkaUI["Kafka UI"]
   
-  style Nginx fill:#f9f,stroke:#333
-  style Browser fill:#bbf,stroke:#333
+  style Nginx fill:#f4c,stroke:#333
+  style Browser fill:#a2a,stroke:#333
 ```
 
 ---
@@ -158,20 +158,20 @@ flowchart TB
 ## 🔌 Integración con stacks
 
 ### Storage
-- MinIO disponible en `minio.luispicado.com`
-- SFTPGo en `sftp.luispicado.com`
-- Apache en `data.luispicado.com`
+- MinIO disponible en `minio.dominio.com`
+- SFTPGo en `sftp.dominio.com`
+- Apache en `data.dominio.com`
 
 ### Kafka
-- KRaft UI en `kraft-ui.luispicado.com`
-- Zookeeper UI en `zoo-ui.luispicado.com`
-- Debezium API en `kraft-api.luispicado.com`
+- KRaft UI en `kraft-ui.dominio.com`
+- Zookeeper UI en `zoo-ui.dominio.com`
+- Debezium API en `kraft-api.dominio.com`
 
 ### Databricks
-- Jupyter en `jupyter.luispicado.com`
-- MLflow en `mlflow.luispicado.com`
-- Airflow en `airflow.luispicado.com`
-- Spark en `spark.luispicado.com`
+- Jupyter en `jupyter.dominio.com`
+- MLflow en `mlflow.dominio.com`
+- Airflow en `airflow.dominio.com`
+- Spark en `spark.dominio.com`
 
 ---
 

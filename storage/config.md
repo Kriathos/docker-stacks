@@ -22,17 +22,17 @@ Si prefieres no usar volumenes locales, puedes eliminarlas del `docker-compose.y
 
 - SQL Server:
   - Usuario: `sa`
-  - Contraseña: `2613LApf.msql`
+  - Contraseña: `Generar en docker-compose.yml`
 - DB2:
   - Usuario: `db2inst1`
-  - Contraseña: `2613LApf.db2`
+  - Contraseña: `Generar en docker-compose.yml`
   - Base de datos: `SAMPLE`
 - SFTPGo:
   - Puerto SFTP: `2022`
   - HTTP UI: `51500` (interno)
 - MinIO:
   - Usuario: `admin`
-  - Contraseña: `2613LApf.minio`
+  - Contraseña: `Generar en docker-compose.yml`
 
 ## Exposición de puertos
 

@@ -28,19 +28,19 @@ Si no deseas usar `F:/`, reemplaza las rutas en `storage/docker-compose.yml` por
 El stack `web` utiliza nombres de dominio personalizados en `web/nginx.conf`. Para acceder a ellos desde el navegador, agrega las entradas necesarias a tu archivo de hosts de Windows:
 
 ```text
-127.0.0.1 sftp.luispicado.com
-127.0.0.1 minio.luispicado.com
-127.0.0.1 minio-api.luispicado.com
-127.0.0.1 data.luispicado.com
-127.0.0.1 kraft-ui.luispicado.com
-127.0.0.1 kraft-api.luispicado.com
-127.0.0.1 zoo-ui.luispicado.com
-127.0.0.1 zoo-api.luispicado.com
-127.0.0.1 jupyter.luispicado.com
-127.0.0.1 mlflow.luispicado.com
-127.0.0.1 airflow.luispicado.com
-127.0.0.1 vault.luispicado.com
-127.0.0.1 spark.luispicado.com
+127.0.0.1 sftp.dominio.com
+127.0.0.1 minio.dominio.com
+127.0.0.1 minio-api.dominio.com
+127.0.0.1 data.dominio.com
+127.0.0.1 kraft-ui.dominio.com
+127.0.0.1 kraft-api.dominio.com
+127.0.0.1 zoo-ui.dominio.com
+127.0.0.1 zoo-api.dominio.com
+127.0.0.1 jupyter.dominio.com
+127.0.0.1 mlflow.dominio.com
+127.0.0.1 airflow.dominio.com
+127.0.0.1 vault.dominio.com
+127.0.0.1 spark.dominio.com
 ```
 
 ## Docker Compose

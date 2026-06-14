@@ -15,7 +15,7 @@ SERVICIO      | EXTERNO | INTERNO   | URL_SUBDOMINIO           | DETALLE
 ngnix	      | 80:443  | 80:443    | luispicado.com	       | Ngnix - Reverse Proxy (HTTP)
 
 msql	      | 51430   | 1433      | msql.luispicado.com      | Microsoft SQL Server (TCP)
-db2	      | 51431   | 50000     | db2.luispicado.com       | DB2 (TCP)
+db2	          | 51431   | 50000     | db2.luispicado.com       | DB2 (TCP)
 sftpgo	      | 51432   | 2022      | sftp.luispicado.com      | SFTP (TCP)
 sftpgo        | -       | 51500     | sftp.luispicado.com      | SFTP (HTTP)
 minio         | -       | 9000      | minio-api.luispicado.com | Minio API (HTTP)
