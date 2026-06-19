@@ -1,6 +1,6 @@
-# ==========================================================
+# ========================================================================================================
 # Apertura de Puertos PICAFER
-# ==========================================================
+# ========================================================================================================
 Se solicita la apertura de puertos por el Modem Kolbi Hogar
 
 - IP Publica PICAFER: 201.192.135.112
@@ -9,19 +9,19 @@ Se solicita la apertura de puertos por el Modem Kolbi Hogar
 - IP Interna Kriathos-PC: 192.168.100.100
 - Puertos Internos: 51500 en adelante
 
----------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------
 SERVICIO      | EXTERNO | INTERNO   | URL_SUBDOMINIO           | DETALLE
----------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------
 ngnix	      | 80:443  | 80:443    | luispicado.com	       | Ngnix - Reverse Proxy (HTTP)
-
+--------------------------------------------------------------------------------------------------------
 msql	      | 51430   | 1433      | msql.luispicado.com      | Microsoft SQL Server (TCP)
-db2	          | 51431   | 50000     | db2.luispicado.com       | DB2 (TCP)
+db2	      | 51431   | 50000     | db2.luispicado.com       | DB2 (TCP)
 sftpgo	      | 51432   | 2022      | sftp.luispicado.com      | SFTP (TCP)
 sftpgo        | -       | 51500     | sftp.luispicado.com      | SFTP (HTTP)
 minio         | -       | 9000      | minio-api.luispicado.com | Minio API (HTTP)
 minio         | -       | 9001      | minio.luispicado.com     | Minio (HTTP)
 apache-file   | -       | 80        | data.luispicado.com      | Apache File Server (HTTP)
-
+--------------------------------------------------------------------------------------------------------
 spark-master  | -       | 7077      | -                        | Apache Spark Master (N/A)
 spark-master  | -       | 8080      | spark.luispicado.com     | Apache Spark Master (HTTP)
 spark-worker  | -       | -         | -                        | Apache Spark Worker (N/A)
@@ -31,23 +31,24 @@ airflow       | 51433   | 5432      | postgres.luispicado.com  | PostgreSQL Airf
 airflow       | -       | 8081:8080 | airflow.luispicado.com   | Airflow Webserver (HTTP)
 airflow       | -       | -         | -                        | Airflow Scheduler (N/A)
 hashi-vault   | -       | 8200      | vault.luispicado.com     | Hashicorp Vault CLI/SDK (HTTP)
-
+--------------------------------------------------------------------------------------------------------
 zookeeper     | -       | 2181      | -                        | Zookeeper (N/A)
 kafka         | 51435   | 9092      | zoo.luispicado.com       | Kafka Broker (Kafka)
 kafka-ui      | -       | 8080      | zoo-ui.luispicado.com    | Kafka UI (HTTP)
 kafka-connect | -       | 8083      | zoo-api.luispicado.com   | Kafka Connect API (HTTP)
 postgres      | 51436   | 5432      | postgres.luispicado.com  | PostgreSQL (TCP)
-
+--------------------------------------------------------------------------------------------------------
 kafka1        | 51437   | 9092      | kraft.luispicado.com     | Kafka Broker (Kafka)
 kafka2        | 51438   | 9092      | kraft.luispicado.com     | Kafka Broker (Kafka)
 kafka3        | 51439   | 9092      | kraft.luispicado.com     | Kafka Broker (Kafka)
 kafka-ui      | -       | 8080      | kraft-ui.luispicado.com  | Kafka UI (HTTP)
 kafka-connect | -       | 8083      | kraft-api.luispicado.com | Kafka Connect API (HTTP)
 postgres      | 51440   | 5432      | postgres.luispicado.com  | PostgreSQL (TCP)
+--------------------------------------------------------------------------------------------------------
 
-# ==========================================================
+# ========================================================================================================
 # Credenciales
-# ==========================================================
+# ========================================================================================================
 
 SQL Server
 - msql.luispicado.com,51430
