@@ -6,7 +6,7 @@ services:
     container_name: sqlserver
     restart: always
     environment:
-      SA_PASSWORD: "2613LApf.msql"
+      SA_PASSWORD: "XXXX" # Colocar contraseña segura
       ACCEPT_EULA: "Y"
     ports:
       - "51430:1433"
@@ -19,7 +19,7 @@ services:
     restart: always
     privileged: true
     environment:
-      DB2INST1_PASSWORD: "2613LApf.db2"
+      DB2INST1_PASSWORD: "XXXX" # Colocar contraseña segura
       LICENSE: "accept"
       DBNAME: "SAMPLE"
     ports:
@@ -52,7 +52,7 @@ services:
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: 2613LApf.minio
+      MINIO_ROOT_PASSWORD: XXXX # Colocar contraseña segura
     # ports:
     #   - "51434:9000"
     #   - "51435:9001"
@@ -67,7 +67,7 @@ services:
     # ports:
     #   - "51436:80"
     volumes:
-      - "F:/apache-fileserver:/usr/local/apache2/htdocs/"
+      - "F:/apache-fileserver:/usr/local/apache2/htdocs/" # Ubicacion Fisica de los archivos
     networks:
       - mynet
 

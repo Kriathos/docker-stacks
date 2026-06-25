@@ -47,4 +47,3 @@ No se deben replicar estas credenciales en los README de cada stack.
 - Mantén este archivo como la única fuente de credenciales para el repositorio.
 - Cambia las contraseñas antes de usar el laboratorio fuera de un entorno controlado.
 - Si agregas un nuevo stack, añade las credenciales aquí y actualiza el compose correspondiente.
-

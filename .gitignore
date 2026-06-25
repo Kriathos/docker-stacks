@@ -11,7 +11,6 @@ __pycache__/
 databricks/vault/data/
 databricks/tokens.txt
 
-
 # Archivos de Kafka
 kafka/old/
 kafka/01_setup.py
@@ -31,3 +30,10 @@ storage/DB2/
 *.swp
 *.swo
 *.DS_Store
+
+# Credenciales y docker-compose con contraseñas quemadas
+credenciales.txt
+storage/docker-compose.yml
+kafka/kafka-kraft/docker-compose.yml
+kafka/kafka-zookeeper/docker-compose.yml
+databricks/docker-compose.yml
