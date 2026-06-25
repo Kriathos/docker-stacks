@@ -32,7 +32,7 @@ ports:
 
 La configuración de Jupyter Lab se define en el comando de arranque de `docker-compose.yml`.
 
-- Token: `mytoken`
+- Token: `(definido en docker-compose.yml)`
 - Directorio raíz: `/home/jovyan/work`
 - Paquetes instalados: `jupyter`, `jupyterlab`, `pyspark==3.5.0`, `delta-spark==3.0.0`, `hvac`
 
@@ -43,7 +43,7 @@ Variables importantes:
 - `AIRFLOW__CORE__EXECUTOR = LocalExecutor`
 - `AIRFLOW__CORE__FERNET_KEY` está fijado en el compose
 - `AIRFLOW__CORE__DAGS_FOLDER = /opt/airflow/dags`
-- `AIRFLOW__DATABASE__SQL_ALCHEMY_CONN = postgresql+psycopg2://airflow:airflow@postgres/airflow`
+- `AIRFLOW__DATABASE__SQL_ALCHEMY_CONN = postgresql+psycopg2://airflow:<CHANGE_ME>@postgres/airflow`
 
 ## MLflow
 

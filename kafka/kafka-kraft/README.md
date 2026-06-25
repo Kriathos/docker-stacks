@@ -96,7 +96,7 @@ curl -X POST http://localhost:8083/connectors \
       "database.hostname": "postgres",
       "database.port": 5432,
       "database.user": "postgres",
-      "database.password": "postgres",
+      "database.password": "CHANGE_ME",
       "database.dbname": "demo",
       "database.server.name": "demo",
       "plugin.name": "pgoutput"

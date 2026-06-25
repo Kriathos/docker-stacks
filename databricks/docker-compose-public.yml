@@ -39,7 +39,7 @@ services:
       - |
         pip install jupyter jupyterlab pyspark==3.5.0 delta-spark==3.0.0 hvac --quiet &&
         jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root \
-          --IdentityProvider.token='mytoken' \
+          --IdentityProvider.token='CHANGE_ME' \
           --ServerApp.allow_origin='*' \
           --ServerApp.allow_remote_access=True \
           --ServerApp.root_dir=/home/jovyan/work
@@ -82,7 +82,7 @@ services:
     container_name: airflow-postgres
     environment:
       POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
+      POSTGRES_PASSWORD: CHANGE_ME
       POSTGRES_DB: airflow
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -101,9 +101,9 @@ services:
       - postgres
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__CORE__FERNET_KEY: "NXZKVV3HFKknH-Fube6KoB5qoInHRcQvWvhYdNoH-W0="
+      AIRFLOW__CORE__FERNET_KEY: "CHANGE_ME"
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:CHANGE_ME@postgres/airflow
     volumes:
       - ./dags:/opt/airflow/dags
     command: ["airflow", "webserver"]
@@ -119,9 +119,9 @@ services:
       - postgres
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__CORE__FERNET_KEY: "NXZKVV3HFKknH-Fube6KoB5qoInHRcQvWvhYdNoH-W0="
+      AIRFLOW__CORE__FERNET_KEY: "CHANGE_ME"
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:CHANGE_ME@postgres/airflow
     volumes:
       - ./dags:/opt/airflow/dags
     command: ["airflow", "scheduler"]
@@ -132,7 +132,7 @@ services:
     image: hashicorp/vault:latest
     container_name: vault
     environment:
-      VAULT_DEV_ROOT_TOKEN_ID: root
+      VAULT_DEV_ROOT_TOKEN_ID: CHANGE_ME
     cap_add:
       - IPC_LOCK
     volumes:

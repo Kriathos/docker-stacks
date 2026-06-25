@@ -80,7 +80,7 @@ services:
       - "51436:5432"
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: CHANGE_ME
       POSTGRES_DB: demo
     volumes:
       - postgres_data:/var/lib/postgresql/data
