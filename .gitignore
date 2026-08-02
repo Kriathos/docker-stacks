@@ -1,36 +1,235 @@
-# Credenciales y docker-compose con Contraseñas Quemadas
+# ============================
+# 🔐 SECRETS & CREDENTIALS
+# ============================
+.env
+.env.local
+.env.*.local
 credenciales.txt
+credenciales.local.md
+secrets/
+*.key
+*.pem
+*.pfx
+
+# Docker Compose overrides
+docker-compose.override.yml
+docker-compose.local.yml
 storage/docker-compose.yml
 kafka-kraft/docker-compose.yml
 kafka-zookeeper/docker-compose.yml
 databricks/docker-compose.yml
 
-# Stack Web
-web/nginx/
-
-# Stack Storage
-storage/sql-server/
-storage/db2/
-
-# Stack Kafka
-kafka/
-
-# Stack Databricks
+# ============================
+# 📊 DATA & LOGS
+# ============================
+*.log
+logs/
+data/
+*.db
+*.sqlite
+*.sqlite3
+mlruns/
 .ipynb_checkpoints/
+
+# ============================
+# 💾 LOCAL VOLUMES
+# ============================
+/F:/sftp/*
+/F:/sftpgo-data/*
+/F:/minio-data/*
+/F:/apache-fileserver/*
+/C:/data/*
+volumes/
+mysql_data/
+postgres_data/
+kafka_data/
+redis_data/
+
+# ============================
+# 🐳 DOCKER
+# ============================
+.dockerignore
+Dockerfile.local
+docker-compose.local.yml
+
+# ============================
+# 🔍 IDE & EDITORS
+# ============================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+.vim/
+
+# ============================
+# 🐍 PYTHON
+# ============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-log.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+
+# ============================
+# 📦 NODE & NPM
+# ============================
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# ============================
+# ☕ JAVA & SCALA
+# ============================
+*.class
+*.jar
+target/
+.gradle/
+
+# ============================
+# 📝 NOTEBOOKS & JUPYTER
+# ============================
+.ipynb_checkpoints/
+*.ipynb
+.jupyter/
 databricks/jars/
 databricks/vault/data/
 databricks/tokens.txt
 
-# Python artifacts
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
+# ============================
+# 🔄 AIRFLOW
+# ============================
+airflow_home/
+airflow.db
+airflow.cfg.local
+logs/airflow/
+dags/__pycache__/
 
-# Temporales y System Files
-*.swp
-*.swo
-*.DS_Store
+# ============================
+# 📊 DATABRICKS STACK
+# ============================
+databricks/jars/
+databricks/vault/data/
+databricks/tokens.txt
+databricks/notebook_exports/
 
-# En Desarrollo
-kubernetes/
+# ============================
+# 🔐 AWS & CLOUD
+# ============================
+.aws/credentials
+.aws/config
+.azure/
+.gcloud/
+
+# ============================
+# 🔒 VPN & SECURITY
+# ============================
+*.ovpn
+*.conf
+vpn_config/
+
+# ============================
+# 📁 BACKUPS & ARCHIVES
+# ============================
+backups/
+backup/
+archives/
+*.tar.gz
+*.zip
+*.7z
+*.bak
+*.backup
+
+# ============================
+# 🧪 TEST & COVERAGE
+# ============================
+.coverage
+htmlcov/
+*.cover
+test-output/
+test-results/
+coverage.xml
+
+# ============================
+# 🏗️ BUILD ARTIFACTS
+# ============================
+build/
+dist/
+*.egg-info/
+*.dist-info/
+
+# ============================
+# 📚 DOCUMENTATION BUILDS
+# ============================
+site/
+docs/_build/
+.sphinx/
+
+# ============================
+# GIT & VCS
+# ============================
+.git/
+
+# ============================
+# 🏢 ENTERPRISE & SENSITIVE
+# ============================
+enterprise/
+proprietary/
+confidential/
+private/
+local/
+development/
+
+# ============================
+# ⚙️ CONFIG OVERRIDES
+# ============================
+*.local.yml
+*.local.yaml
+*.local.json
+config.local.py
+
+# ============================
+# ✅ KEEP THESE (IMPORTANT)
+# ============================
+!.github/
+!.gitattributes
+!.dockerignore
+!.gitkeep
+!.env.example
+!.env.template
+!example_config.yml
+!CONTRIBUTING.md
+!CODE_OF_CONDUCT.md
+!LICENSE
+!README.md
