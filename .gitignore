@@ -11,13 +11,15 @@ secrets/
 *.pem
 *.pfx
 
-# Docker Compose overrides
+# ============================
+# 🐳 DOCKER COMPOSE
+# ============================
+# Excluir SOLO los docker-compose.yml genéricos (sin nombre específico)
+# Permitir docker-compose-NOMBRE.yml (con nombre específico)
 docker-compose.override.yml
 docker-compose.local.yml
-storage/docker-compose.yml
-kafka-kraft/docker-compose.yml
-kafka-zookeeper/docker-compose.yml
-databricks/docker-compose.yml
+*/docker-compose.yml      # Excluir docker-compose.yml genéricos en subcarpetas
+!*/docker-compose-*.yml   # Pero permitir docker-compose-NOMBRE.yml
 
 # ============================
 # 📊 DATA & LOGS
@@ -210,6 +212,26 @@ confidential/
 private/
 local/
 development/
+
+# ============================
+# 📁 CARPETAS EXCLUIDAS
+# ============================
+# Excluir carpetas que NO deben estar en el repo
+kafka/                    # Carpeta principal de kafka (deprecated)
+kubernetes/               # Carpeta kubernetes
+web/nginx/                # Subcarpeta nginx de web
+storage/sql-server/       # Subcarpeta sql-server de storage
+storage/db2/              # Subcarpeta db2 de storage
+
+# ============================
+# ✅ PERO PERMITIR ESTAS
+# ============================
+# Permitir que existan los docker-compose-*.yml con nombre específico
+!kafka-kraft/docker-compose-*.yml
+!kafka-zookeeper/docker-compose-*.yml
+!storage/docker-compose-*.yml
+!databricks/docker-compose.yml
+!web/docker-compose-*.yml
 
 # ============================
 # ⚙️ CONFIG OVERRIDES
