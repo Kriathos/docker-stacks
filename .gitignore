@@ -222,6 +222,10 @@ kubernetes/               # Carpeta kubernetes
 web/nginx/                # Subcarpeta nginx de web
 storage/sql-server/       # Subcarpeta sql-server de storage
 storage/db2/              # Subcarpeta db2 de storage
+kafka/kafka-kraft/        # Versión antigua de kafka-kraft
+kafka/kafka-zookeeper/    # Versión antigua de kafka-zookeeper
+kafka/pruebas-end-to-end/ # Pruebas antiguas de kafka
+kafka/version-1/          # Versiones viejas
 
 # ============================
 # ✅ PERO PERMITIR ESTAS
@@ -230,7 +234,7 @@ storage/db2/              # Subcarpeta db2 de storage
 !kafka-kraft/docker-compose-*.yml
 !kafka-zookeeper/docker-compose-*.yml
 !storage/docker-compose-*.yml
-!databricks/docker-compose.yml
+!databricks/docker-compose-*.yml
 !web/docker-compose-*.yml
 
 # ============================
