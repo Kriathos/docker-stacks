@@ -2,43 +2,163 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Bienvenido al Mundo de los Microservicios</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Landing page del stack de microservicios">
+  <meta name="theme-color" content="#2a5298">
+  
+  <title>Microservicios - Stack Caddy</title>
+  
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       background: linear-gradient(135deg, #1e3c72, #2a5298);
       color: #fff;
       text-align: center;
-      padding: 50px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
     }
-    h1 {
-      font-size: 3em;
-      margin-bottom: 20px;
-    }
-    p {
-      font-size: 1.2em;
-      margin-bottom: 40px;
-    }
+    
     .container {
-      max-width: 600px;
-      margin: auto;
-      background: rgba(0,0,0,0.4);
-      padding: 30px;
+      max-width: 800px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 60px 40px;
       border-radius: 10px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 30px;
+      color: #e0e0e0;
+    }
+    
+    .services {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 40px 0;
+    }
+    
+    .service {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 8px;
+      transition: transform 0.3s, background 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .service:hover {
+      transform: translateY(-5px);
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .service h3 {
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+    }
+    
+    a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      border-bottom: 2px solid #2a5298;
+      transition: border-color 0.3s;
+    }
+    
+    a:hover {
+      border-bottom-color: #fff;
+    }
+    
     footer {
-      margin-top: 50px;
-      font-size: 0.9em;
-      color: #ccc;
+      margin-top: 60px;
+      font-size: 0.9rem;
+      color: #aaa;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 20px;
+    }
+    
+    .status {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: #4ade80;
+      border-radius: 50%;
+      margin-right: 5px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🚀 Bienvenido</h1>
+    <h1>🚀 Bienvenido al Stack de Microservicios</h1>
+    
+    <p>Servidor centralizado con <strong>Caddy</strong> como reverse proxy.</p>
+    
+    <div class="services">
+      <div class="service">
+        <h3>📤 SFTPGo</h3>
+        <p><a href="https://sftp.luispicado.com" target="_blank" rel="noopener">Gestor SFTP</a></p>
+      </div>
+      
+      <div class="service">
+        <h3>📦 MinIO</h3>
+        <p><a href="https://minio.luispicado.com" target="_blank" rel="noopener">Console</a> | 
+           <a href="https://minio-api.luispicado.com" target="_blank" rel="noopener">API</a></p>
+      </div>
+      
+      <div class="service">
+        <h3>📊 Spark</h3>
+        <p><a href="https://spark.luispicado.com" target="_blank" rel="noopener">Master UI</a></p>
+      </div>
+      
+      <div class="service">
+        <h3>📁 Data</h3>
+        <p><a href="https://data.luispicado.com" target="_blank" rel="noopener">File Server</a></p>
+      </div>
+    </div>
+    
+    <footer>
+      <span class="status"></span> Stack activo - Agosto 2026
+    </footer>
   </div>
-  <footer>
-    Julio, 2026
-  </footer>
+  
+  <script>
+    // Verificar disponibilidad de servicios (opcional)
+    const services = [
+      { name: 'SFTPGo', url: 'https://sftp.luispicado.com' },
+      { name: 'MinIO', url: 'https://minio.luispicado.com' },
+      { name: 'Spark', url: 'https://spark.luispicado.com' }
+    ];
+    
+    services.forEach(service => {
+      fetch(service.url, { method: 'HEAD', mode: 'no-cors' })
+        .then(() => console.log(`✓ ${service.name} disponible`))
+        .catch(() => console.warn(`✗ ${service.name} no disponible`));
+    });
+  </script>
 </body>
 </html>

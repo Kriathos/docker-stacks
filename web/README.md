@@ -9,7 +9,7 @@ Este stack implementa una arquitectura de microservicios con **Caddy** como reve
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     CLIENTE / INTERNET                          │
-│                  (HTTP/HTTPS :80/:443)                          │
+│                    (HTTP/HTTPS :80/:443)                        │
 └────────────────────────────┬────────────────────────────────────┘
                              │
                              ▼
