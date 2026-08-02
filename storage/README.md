@@ -60,9 +60,11 @@ New-Item -Path "F:\\apache-fileserver" -ItemType Directory -Force
 ### 2. Iniciar stack
 ```powershell
 cd .\\storage
-docker compose up -d
-docker compose ps
+docker-compose -f docker-compose-storage.yml up -d
+docker-compose -f docker-compose-storage.yml ps
 ```
+
+> **Nota**: El archivo de configuración es `docker-compose-storage.yml`. Usa `-f docker-compose-storage.yml` para especificar qué compose file ejecutar.
 
 ---
 
@@ -107,7 +109,7 @@ Ver [`credenciales.md`](../credenciales.md):
 
 #### Conectar
 ```powershell
-docker compose exec sqlserver sqlcmd -S localhost -U sa
+docker-compose -f docker-compose-storage.yml exec sqlserver sqlcmd -S localhost -U sa
 ```
 
 #### Crear DB
@@ -118,7 +120,7 @@ CREATE DATABASE MyDatabase;
 #### Restaurar backup
 ```powershell
 # Copiar .bak a volumen
-docker compose cp "AdventureWorks2022.bak" sqlserver:/var/opt/mssql/backup/
+docker-compose -f docker-compose-storage.yml cp "AdventureWorks2022.bak" sqlserver:/var/opt/mssql/backup/
 
 # En SQL
 RESTORE DATABASE MyDatabase FROM DISK = '/var/opt/mssql/backup/MyDB.bak'
@@ -128,7 +130,7 @@ RESTORE DATABASE MyDatabase FROM DISK = '/var/opt/mssql/backup/MyDB.bak'
 
 #### Conectar
 ```powershell
-docker compose exec db2 bash
+docker-compose -f docker-compose-storage.yml exec db2 bash
 db2 connect to sample
 ```
 
@@ -220,26 +222,44 @@ flowchart TB
 
 ## 🛑 Operaciones
 
-### Detener
+### Iniciar Stack
 ```powershell
-docker compose down
+# Iniciar todos los servicios en background
+docker-compose -f docker-compose-storage.yml up -d
+
+# Verificar estado
+docker-compose -f docker-compose-storage.yml ps
 ```
 
-### Limpiar (⚠️ borra datos)
+### Detener Stack
 ```powershell
-docker compose down -v
+# Detener sin eliminar datos
+docker-compose -f docker-compose-storage.yml down
 ```
 
-### Ver logs
+### Limpiar (⚠️ borra datos y volúmenes)
 ```powershell
-docker compose logs -f sqlserver
-docker compose logs -f db2
-docker compose logs -f minio
+docker-compose -f docker-compose-storage.yml down -v
+```
+
+### Ver Logs
+```powershell
+# Ver logs de SQL Server
+docker-compose -f docker-compose-storage.yml logs -f sqlserver
+
+# Ver logs de DB2
+docker-compose -f docker-compose-storage.yml logs -f db2
+
+# Ver logs de MinIO
+docker-compose -f docker-compose-storage.yml logs -f minio
+
+# Ver logs de todos los servicios
+docker-compose -f docker-compose-storage.yml logs -f
 ```
 
 ### Backup SQL Server
 ```powershell
-docker compose exec sqlserver sqlcmd -S localhost -U sa -Q "BACKUP DATABASE [dbname] TO DISK='/var/opt/mssql/backup/dbname.bak'"
+docker-compose -f docker-compose-storage.yml exec sqlserver sqlcmd -S localhost -U sa -Q "BACKUP DATABASE [dbname] TO DISK='/var/opt/mssql/backup/dbname.bak'"
 ```
 
 ---

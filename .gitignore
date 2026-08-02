@@ -1,39 +1,36 @@
+# Credenciales y docker-compose con Contraseñas Quemadas
+credenciales.txt
+storage/docker-compose.yml
+kafka-kraft/docker-compose.yml
+kafka-zookeeper/docker-compose.yml
+databricks/docker-compose.yml
+
+# Stack Web
+web/nginx/
+
+# Stack Storage
+storage/sql-server/
+storage/db2/
+
+# Stack Kafka
+kafka/
+
+# Stack Databricks
+.ipynb_checkpoints/
+databricks/jars/
+databricks/vault/data/
+databricks/tokens.txt
+
 # Python artifacts
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 
-# Jupyter checkpoints
-.ipynb_checkpoints/
-
-# Vault storage and local tokens
-databricks/vault/data/
-databricks/tokens.txt
-
-# Archivos de Kafka
-kafka/old/
-kafka/01_setup.py
-kafka/CHECKLIST.md
-kafka/COMANDOS.ps1
-kafka/consumer.py
-kafka/INDEX.md
-kafka/Pruebas Cambios en SQL.sql
-kafka/QUICK_START.md
-
-# Binarios y Backups
-databricks/jars/
-storage/SQL Server/
-storage/DB2/
-
-# Archivos temporales y de sistema
+# Temporales y System Files
 *.swp
 *.swo
 *.DS_Store
 
-# Credenciales y docker-compose con contraseñas quemadas
-credenciales.txt
-storage/docker-compose.yml
-kafka/kafka-kraft/docker-compose.yml
-kafka/kafka-zookeeper/docker-compose.yml
-databricks/docker-compose.yml
+# En Desarrollo
+kubernetes/

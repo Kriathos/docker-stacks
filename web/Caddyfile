@@ -1,0 +1,89 @@
+#--------------------------------
+# Stack Web
+#--------------------------------
+{
+  # Opcional: logging global
+  admin off
+}
+
+# Página HTML estática por defecto
+:80 {
+  root * /usr/share/caddy/html
+  file_server
+}
+
+#--------------------------------
+# Stack Storage
+#--------------------------------
+sftp.luispicado.com {
+  reverse_proxy sftpgo:51500
+}
+
+minio-api.luispicado.com {
+  reverse_proxy minio:9000
+}
+
+minio.luispicado.com {
+  reverse_proxy minio:9001
+}
+
+data.luispicado.com {
+  reverse_proxy apache-fileserver:80
+}
+
+#--------------------------------
+# Stack Kafka Kraft
+#--------------------------------
+kraft-ui.luispicado.com {
+  reverse_proxy kafka-ui-kraft:8080 {
+    # Cabeceras necesarias para WebSocket
+    header_up Upgrade {http.request.header.Upgrade}
+    header_up Connection {http.request.header.Connection}
+  }
+}
+
+kraft-api.luispicado.com {
+  reverse_proxy kafka-connect-kraft:8083
+}
+
+#--------------------------------
+# Stack Kafka Zookeeper
+#--------------------------------
+zoo-ui.luispicado.com {
+  reverse_proxy kafka-ui-zoo:8080 {
+    # Cabeceras necesarias para WebSocket
+    header_up Upgrade {http.request.header.Upgrade}
+    header_up Connection {http.request.header.Connection}
+  }
+}
+
+zoo-api.luispicado.com {
+  reverse_proxy kafka-connect-zoo:8083
+}
+
+#--------------------------------
+# Stack Databricks
+#--------------------------------
+jupyter.luispicado.com {
+  reverse_proxy jupyter:8888 {
+    # Cabeceras necesarias para WebSocket
+    header_up Upgrade {http.request.header.Upgrade}
+    header_up Connection {http.request.header.Connection}
+  }
+}
+
+mlflow.luispicado.com {
+  reverse_proxy mlflow:5000
+}
+
+airflow.luispicado.com {
+  reverse_proxy airflow-webserver:8080
+}
+
+vault.luispicado.com {
+  reverse_proxy vault:8200
+}
+
+spark.luispicado.com {
+  reverse_proxy spark:8080
+}
