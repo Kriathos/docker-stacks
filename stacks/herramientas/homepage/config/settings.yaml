@@ -1,0 +1,27 @@
+title: Laboratorio
+favicon: https://icons.duckduckgo.com/ip3/luispicado.com.ico
+theme: dark
+color: slate
+headerStyle: boxed
+layout:
+  Almacenamiento:
+    style: row
+    columns: 4
+  Kafka:
+    style: row
+    columns: 3
+  Databricks:
+    style: row
+    columns: 4
+  Orquestacion:
+    style: row
+    columns: 2
+  Observabilidad:
+    style: row
+    columns: 3
+  Monitoreo:
+    style: row
+    columns: 3
+  Herramientas:
+    style: row
+    columns: 3

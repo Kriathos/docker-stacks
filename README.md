@@ -1,448 +1,207 @@
-# 🐳 Laboratorio Integrado de Infraestructura de Datos
+# Docker Stacks
 
-<div align="center">
+Laboratorio local de microservicios para practicar ingeniería de datos y administrar un home lab. Simula plataformas como Kafka (con Zookeeper y con KRaft) y Databricks, junto con servicios de almacenamiento (SQL Server, DB2, SFTP, MinIO y Apache), todo desplegado con Docker Compose y expuesto de forma controlada a internet con Caddy.
 
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Docker Compose](https://img.shields.io/badge/Docker%20Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
-![Platform](https://img.shields.io/badge/Platform-Windows%2BWSL2-blue?style=flat-square)
-![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square)
-
-**Ecosistema modular de datos, mensajería e infraestructura empresarial en Docker**
-
-[Inicio Rápido](#-inicio-rápido) • [Stacks](#-stacks-disponibles) • [Documentación](#-documentación) • [Arquitectura](#-arquitectura) • [Configuración](#-configuración-inicial)
-
-</div>
+![Licencia MIT](https://img.shields.io/badge/licencia-MIT-green)
+![Docker Compose](https://img.shields.io/badge/Docker%20Compose-v2-2496ED)
+![PowerShell](https://img.shields.io/badge/PowerShell-7-5391FE)
 
 ---
 
-## 📖 Descripción
+## Contenido
 
-Laboratorio profesional de infraestructura de datos y mensajería para Windows con Docker Compose. Proporciona múltiples stacks independientes pero interconectados que representan patrones modernos de arquitectura empresarial.
-
-**Ideal para:**
-- 🎓 Aprendizaje de arquitecturas de microservicios
-- 🧪 Validación de flujos de integración multi-tecnología
-- 📊 Experimentación con streaming, CDC y orquestación
-- 🏗️ Prototipos locales antes de despliegue cloud
-- 🔬 Laboratorios de desarrollo con datos reales
-- 🚀 Demostración de capabilidades empresariales
+- [Características](#características)
+- [Arquitectura](#arquitectura)
+- [Grupos de servicios](#grupos-de-servicios)
+- [Inicio rápido](#inicio-rápido)
+- [Autenticación](#autenticación)
+- [Estructura del repositorio](#estructura-del-repositorio)
+- [Tecnologías y lenguajes](#tecnologías-y-lenguajes)
+- [Documentación](#documentación)
+- [Contribuir y seguridad](#contribuir-y-seguridad)
+- [Licencia](#licencia)
 
 ---
 
-## 🏗️ Arquitectura General
+## Características
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                                                                     │
-│                      🌐 NAVEGADOR / CLIENTE 🌐                     │
-│                                                                     │
-└──────────────────────────────────┬──────────────────────────────────┘
-                                   │
-                    ┌──────────────▼──────────────┐
-                    │    💫 CADDY PROXY 💫       │
-                    │   (Reverse Proxy Central)   │
-                    │  Puerto 80 / 443 (HTTPS)    │
-                    └────────┬────────────────────┘
-                             │
-        ┌────────────────────┼────────────────────┬─────────────────┐
-        │                    │                    │                 │
-        ▼                    ▼                    ▼                 ▼
-    ┌────────────┐  ┌──────────────┐   ┌────────────┐   ┌──────────────┐
-    │ DATABRICKS │  │     KAFKA    │   │  STORAGE   │   │   CUSTOM     │
-    │  (Datos)   │  │ (Mensajería) │   │(BasesDatos)│   │  (Usuarios)  │
-    └────────────┘  └──────────────┘   └────────────┘   └──────────────┘
-        │                    │                    │
-        └────────────────────┼────────────────────┘
-                             │
-                    ┌────────▼──────────┐
-                    │ 🌉 Red Docker 🌉 │
-                    │ (mynet - bridge)  │
-                    └───────────────────┘
+- **Grupos independientes**: cada tema (Kafka, Databricks, almacenamiento, orquestación, observabilidad y monitoreo) tiene su propio stack. Puedes levantar uno solo o todos.
+- **Red compartida**: los servicios que necesitan hablar entre grupos se conectan a la red `datalab`.
+- **Entrada HTTP única**: Caddy atiende todos los subdominios, con HTTPS automático de Let's Encrypt.
+- **Autenticación por capas**: los servicios con login propio usan el suyo; los que no tienen login se protegen con usuario y clave en Caddy.
+- **Secretos fuera de git**: las contraseñas van en `.env`, y Compose se detiene si falta una.
+- **Un comando para todo**: `scripts/labs.ps1` levanta, baja, valida y muestra el estado de los grupos.
+
+---
+
+## Arquitectura
+
+El tráfico entra por el router, que reenvía los puertos a la PC. Caddy atiende HTTP y HTTPS; los TCP reservados (51430 a 51440) van directo a su contenedor. Los Postgres no publican puerto: se administran desde pgAdmin, por Caddy.
+
+```mermaid
+flowchart LR
+    U["Usuario en internet"] -->|"HTTPS 443"| R["Router con port forwarding"]
+    U -->|"TCP: SQL Server, DB2, SFTP, Kafka"| R
+    R -->|"80 y 443"| C["Caddy (grupo seguridad)"]
+    R -->|"puertos TCP reservados"| T["SQL Server, DB2, SFTP, Kafka"]
+    C -->|"red datalab"| H["Servicios HTTP: MinIO, Jupyter, Airflow, Grafana, Vault..."]
 ```
 
----
+Los contenedores de cada grupo viven en su red interna. Los que necesitan comunicarse entre grupos, o que Caddy debe alcanzar, se unen también a `datalab`.
 
-## ⚡ Stacks Disponibles
+```mermaid
+flowchart LR
+    DL(("datalab<br/>red compartida"))
+    ST["storage<br/>SQL Server, DB2, SFTP, MinIO, Apache"] --- DL
+    KZ["kafka-zookeeper<br/>Zookeeper, Kafka, Kafka UI, Connect"] --- DL
+    KK["kafka-kraft<br/>3 brokers, Kafka UI, Connect"] --- DL
+    DB["databricks<br/>Spark, Jupyter, MLflow, Hive Metastore, Vault"] --- DL
+    OR["orquestacion<br/>Airflow"] --- DL
+    OB["observabilidad<br/>Prometheus, Grafana, cAdvisor"] --- DL
+    MO["monitoreo<br/>Uptime Kuma, ntfy, Portainer"] --- DL
+    HE["herramientas<br/>pgAdmin, FileBrowser, Homepage"] --- DL
+    SE["seguridad<br/>Caddy, CrowdSec"] --- DL
+```
 
-### 🔬 **Databricks** - Análisis de Datos y Machine Learning
-**Computación distribuida, notebooks, ML y orquestación**
+Así se decide cómo se protege cada subdominio:
 
-| Servicio | Propósito | Puerto |
-|----------|-----------|--------|
-| Apache Spark | Computación distribuida | 7077, 8080, 8081 |
-| Jupyter Lab | Notebooks interactivos | 8888 |
-| MLflow | Tracking de experimentos ML | 5000 |
-| Apache Airflow | Orquestación de DAGs | 8082 |
-| HashiCorp Vault | Gestión de secretos | 8200 |
-| PostgreSQL | Metadatos y base de datos | 5432 |
+```mermaid
+flowchart TD
+    S["Solicitud a un subdominio"] --> C["Caddy"]
+    C --> Q{"¿El servicio tiene login propio?"}
+    Q -->|"Sí"| L["Login del servicio"]
+    Q -->|"No"| B["Usuario y clave de Caddy"]
+    L --> SV["Servicio"]
+    B --> SV
+```
 
-📖 [Documentación completa](./databricks/README.md) | ⚙️ [Configuración](./databricks/config.md) | 🚀 [Setup](./databricks/setup.md)
+Y así se levanta el laboratorio con `labs.ps1 up all`:
 
-**Casos de uso:** Análisis exploratorio, ML training, ETL local, experimentos controlados
-
----
-
-### 📨 **Kafka** - Streaming y Change Data Capture
-**Plataforma de mensajería empresarial con dos arquitecturas**
-
-#### KRaft (Moderno - Recomendado)
-| Servicio | Propósito | Replicas |
-|----------|-----------|----------|
-| Kafka Broker | Cluster con KRaft | 3 |
-| Debezium Connect | CDC desde PostgreSQL | 1 |
-| PostgreSQL | Source de datos | 1 |
-
-#### Zookeeper (Tradicional)
-| Servicio | Propósito | Replicas |
-|----------|-----------|----------|
-| Zookeeper | Coordinador de cluster | 3 |
-| Kafka Broker | Cluster con ZK | 3 |
-| Debezium Connect | CDC desde PostgreSQL | 1 |
-| PostgreSQL | Source de datos | 1 |
-
-📖 [Documentación completa](./kafka/README.md) | 📖 [KRaft](./kafka-kraft/README.md) | 📖 [Zookeeper](./kafka-zookeeper/README.md)
-
-**Casos de uso:** Event streaming, CDC, replicación de datos, arquitecturas event-driven
+```mermaid
+flowchart TD
+    A["Copiar .env.example a .env"] --> B["labs.ps1 validate all"]
+    B --> C["labs.ps1 up all"]
+    C --> D["Crear la red datalab si no existe"]
+    D --> E["Levantar storage, kafka, databricks, orquestacion, observabilidad, monitoreo y herramientas"]
+    E --> F["Levantar seguridad: Caddy y CrowdSec"]
+```
 
 ---
 
-### 💾 **Storage** - Bases de Datos y Almacenamiento
-**Stack polivalente de almacenamiento: transaccional, NoSQL y objeto**
+## Grupos de servicios
 
-| Servicio | Tipo | Propósito | Puerto |
-|----------|------|----------|--------|
-| SQL Server | RDBMS | Base datos relacional (MSSQL) | 1433 |
-| IBM DB2 | RDBMS | Base datos empresarial | 50000 |
-| MinIO | Object Storage | S3-compatible local | 9000, 9001 |
-| SFTPGo | File Transfer | Servidor SFTP con UI web | 2022 |
-| Apache HTTP | Static Files | Servicio de archivos | 80 |
-
-📖 [Documentación completa](./storage/README.md) | ⚙️ [Configuración](./storage/config.md) | 🚀 [Setup](./storage/setup.md)
-
-**Casos de uso:** Multi-BD, data warehouse local, file server, lakehouse prototyping
-
----
-
-### 🌐 **Web** - Proxy Inverso Centralizado
-**Gateway HTTP/HTTPS con enrutamiento inteligente**
-
-| Servicio | Propósito | Puerto |
-|----------|-----------|--------|
-| Caddy | Reverse proxy + TLS auto | 80, 443 |
-| Landing Page | Interfaz central de acceso | 80 |
-
-📖 [Documentación completa](./web/README.md) | ⚙️ [Configuración](./web/config.md)
-
-**Casos de uso:** Enrutamiento centralizado, HTTPS automático, acceso único a todos los servicios
+| Grupo | Stack | Servicios |
+|---|---|---|
+| `storage` | [`stacks/storage/compose.yaml`](stacks/storage/compose.yaml) | SQL Server, DB2, SFTPGo, MinIO, Apache |
+| `kafka-zookeeper` | [`stacks/kafka-zookeeper/compose.yaml`](stacks/kafka-zookeeper/compose.yaml) | Zookeeper, Kafka, Kafka UI, Kafka Connect, Postgres |
+| `kafka-kraft` | [`stacks/kafka-kraft/compose.yaml`](stacks/kafka-kraft/compose.yaml) | 3 brokers Kafka KRaft, Kafka UI, Kafka Connect, Postgres |
+| `databricks` | [`stacks/databricks/compose.yaml`](stacks/databricks/compose.yaml) | Spark, Jupyter, MLflow, Hive Metastore con su Postgres, Vault |
+| `orquestacion` | [`stacks/orquestacion/compose.yaml`](stacks/orquestacion/compose.yaml) | Airflow (con papermill) y su Postgres |
+| `observabilidad` | [`stacks/observabilidad/compose.yaml`](stacks/observabilidad/compose.yaml) | Prometheus, Grafana, cAdvisor (las métricas del host las da `windows_exporter`, fuera de Docker) |
+| `monitoreo` | [`stacks/monitoreo/compose.yaml`](stacks/monitoreo/compose.yaml) | Uptime Kuma, ntfy, Portainer |
+| `herramientas` | [`stacks/herramientas/compose.yaml`](stacks/herramientas/compose.yaml) | pgAdmin, FileBrowser, Homepage |
+| `seguridad` | [`stacks/seguridad/compose.yaml`](stacks/seguridad/compose.yaml) | Caddy, CrowdSec |
 
 ---
 
-## 🚀 Inicio Rápido
+## Inicio rápido
 
-### Paso 1: Verificar Requisitos
+### Requisitos
+
+- Docker Desktop (o Docker Engine con el plugin de Compose v2).
+- PowerShell 7 para ejecutar `scripts/labs.ps1`.
+- Un dominio propio, con registros DNS que apunten a la IP pública de tu red.
+- `windows_exporter` instalado como servicio de Windows, para las métricas del host (ver [Guía](docs/guia.md#2-requisitos-previos)).
+- Para acceso desde internet: reenvío de puertos en tu router (ver [Guía](docs/guia.md)).
+
+### Pasos
 
 ```powershell
-# Verificar Docker
-docker --version
+# 1. Crear el archivo de secretos y completar los valores
+Copy-Item .env.example .env
 
-# Verificar Docker Compose
-docker compose version
+# 2. Validar los stacks sin levantar nada
+.\scripts\labs.ps1 validate all
 
-# WSL2 habilitado
-wsl -l -v
+# 3. Levantar todo el laboratorio
+.\scripts\labs.ps1 up all
+
+# 4. Revisar el estado
+.\scripts\labs.ps1 status
 ```
 
-**Requisitos mínimos:**
-- ✅ Docker Desktop 4.0+ para Windows
-- ✅ WSL2 habilitado
-- ✅ 8GB RAM disponible (16GB recomendado)
-- ✅ PowerShell 5.0+ o PowerShell Core
-
-### Paso 2: Crear Red Compartida
+Para levantar o bajar un solo grupo:
 
 ```powershell
-# Crear red Docker para interconectar stacks
-docker network create mynet --driver bridge
-
-# Verificar
-docker network ls | findstr mynet
+.\scripts\labs.ps1 up databricks
+.\scripts\labs.ps1 down databricks
 ```
 
-### Paso 3: Configurar Hosts Locales (Recomendado)
+La [guía del laboratorio](docs/guia.md) explica cómo generar el hash de Caddy, la clave de Airflow, los registros DNS y cómo entrar a cada servicio. Para el primer login de cada grupo, sigue la [guía de inicio](docs/guia-inicio.md).
 
-Edita `C:\Windows\System32\drivers\etc\hosts` como administrador:
+---
 
-```hosts
-# Caddy proxy y servicios
-127.0.0.1 localhost
-127.0.0.1 sftp.local
-127.0.0.1 minio.local
-127.0.0.1 minio-api.local
-127.0.0.1 data.local
-127.0.0.1 spark.local
+## Autenticación
 
-# Kafka
-127.0.0.1 kraft-ui.local
-127.0.0.1 zoo-ui.local
+- **Con login propio**: SFTPGo, MinIO, Vault, Airflow, Grafana, Uptime Kuma, ntfy, pgAdmin, FileBrowser y Jupyter (con token).
+- **Con usuario y clave de Caddy**: Apache, Kafka UI, Kafka Connect, MLflow, Spark UI y Prometheus.
+- **Doble capa**: Portainer, primero con la clave de Caddy y después con su propio login.
 
-# Databricks
-127.0.0.1 jupyter.local
-127.0.0.1 mlflow.local
-127.0.0.1 airflow.local
-127.0.0.1 vault.local
+La decisión está registrada en [ADR 0004](docs/adr/0004-autenticacion-por-capas-en-caddy.md). Las reglas de puertos están en [ADR 0005](docs/adr/0005-postgres-sin-puertos-y-reglas-de-puertos.md) y en la [guía](docs/guia.md#51-router).
+
+---
+
+## Estructura del repositorio
+
 ```
-
-### Paso 4: Iniciar Stacks
-
-**🌐 Primero: Proxy web (recomendado)**
-```powershell
-cd .\web
-docker-compose -f docker-compose-caddy.yml up -d
-docker-compose -f docker-compose-caddy.yml ps
-```
-
-**💾 Stack de Storage**
-```powershell
-cd .\storage
-docker-compose -f docker-compose-storage.yml up -d
-docker-compose -f docker-compose-storage.yml ps
-```
-
-**📨 Stack de Kafka (KRaft por defecto)**
-```powershell
-cd .\kafka-kraft
-docker-compose up -d
-docker-compose ps
-```
-
-**🔬 Stack de Databricks**
-```powershell
-cd .\databricks
-docker-compose up -d
-docker-compose ps
-```
-
-### Paso 5: Verificar Conectividad
-
-```powershell
-# Ver todos los contenedores corriendo
-docker ps
-
-# Verificar red
-docker network inspect mynet
-
-# Ver logs de un servicio
-docker-compose logs -f <servicio>
+docker-stacks/
+├── stacks/          # Un stack de Docker Compose por grupo
+├── scripts/         # labs.ps1: up, down, status, validate
+├── docs/            # Guía, decisiones de arquitectura (ADR) y agentes
+├── .env.example     # Plantilla de variables (el .env real no se versiona)
+├── GLOSSARY.md      # Vocabulario del proyecto
+├── CLAUDE.md        # Configuración para agentes de IA
+├── CONTRIBUTING.md
+├── SECURITY.md
+└── LICENSE
 ```
 
 ---
 
-## 📚 Documentación Completa
+## Tecnologías y lenguajes
 
-### Guías de Inicio
-| Documento | Propósito |
-|-----------|----------|
-| [`SETUP.md`](./SETUP.md) | 🚀 Guía paso a paso de instalación |
-| [`README.md`](./README.md) | 📖 Este documento |
-| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | 🏗️ Arquitectura detallada y diagramas |
+| Lenguaje o formato | Uso |
+|---|---|
+| **YAML** | Stacks de Docker Compose, configuración de Prometheus y CrowdSec |
+| **PowerShell** | `scripts/labs.ps1` para levantar, bajar y validar |
+| **Python** | DAG de Airflow, consumidores de Kafka y tareas de Spark |
+| **Jupyter Notebook** | Pruebas de conexión con MinIO, Vault, Delta y Conexiones |
+| **Caddyfile** | Configuración de Caddy como proxy inverso |
+| **HCL** | Configuración de Vault |
+| **Markdown** | Documentación y decisiones de arquitectura |
 
-### Configuración Global
-| Documento | Propósito |
-|-----------|----------|
-| [`config.md`](./config.md) | ⚙️ Configuración global, variables y parámetros |
-| [`credenciales.md`](./credenciales.md) | 🔐 Credenciales centralizadas (⚠️ No para producción) |
-
-### Documentación por Stack
-| Stack | README | Config | Setup |
-|-------|--------|--------|-------|
-| **Web (Caddy)** | [📖](./web/README.md) | [⚙️](./web/config.md) | - |
-| **Storage** | [📖](./storage/README.md) | [⚙️](./storage/config.md) | [🚀](./storage/setup.md) |
-| **Kafka** | [📖](./kafka/README.md) | [⚙️](./kafka/config.md) | - |
-| **Kafka KRaft** | [📖](./kafka-kraft/README.md) | [⚙️](./kafka-kraft/config.md) | - |
-| **Kafka Zookeeper** | [📖](./kafka-zookeeper/README.md) | [⚙️](./kafka-zookeeper/config.md) | - |
-| **Databricks** | [📖](./databricks/README.md) | [⚙️](./databricks/config.md) | [🚀](./databricks/setup.md) |
+Servicios principales: Apache Kafka, Apache Spark, Apache Airflow, Debezium, Databricks (simulado con Spark, Jupyter y Delta), Hive Metastore, MLflow, HashiCorp Vault, MinIO, SQL Server, DB2, SFTPGo, Apache httpd, Caddy, CrowdSec, Prometheus, Grafana, windows_exporter, cAdvisor, Uptime Kuma, ntfy, Portainer, pgAdmin, FileBrowser y Homepage.
 
 ---
 
-## ⚙️ Configuración Inicial
+## Documentación
 
-Ver [`config.md`](./config.md) para:
-- 🌉 Configuración de red Docker (`mynet`)
-- 🖥️ Montajes locales en Windows
-- 📍 Configuración de hosts y dominios
-- 🔑 Variables de entorno globales
-- 🔒 Consideraciones de seguridad
-
----
-
-## 🔐 Credenciales
-
-**⚠️ Importante:** Este proyecto contiene credenciales de laboratorio en [`credenciales.md`](./credenciales.md).
-
-**Antes de usar en producción:**
-1. ✅ Reemplaza todas las contraseñas por valores seguros
-2. ✅ Usa gestión de secretos (Vault, AWS Secrets Manager, etc.)
-3. ✅ Implementa autenticación multi-factor
-4. ✅ Habilita cifrado en tránsito y en reposo
-5. ✅ Realiza auditoría de seguridad completa
-
-Todas las credenciales están centralizadas en [`credenciales.md`](./credenciales.md) - No las repliques en otros archivos.
+- [Guía del laboratorio](docs/guia.md): uso, implementación y solución de problemas.
+- [Guía de inicio](docs/guia-inicio.md): por cada grupo, qué servicios tiene y cómo hacer el primer login.
+- [Decisiones de arquitectura](docs/adr/): por qué se eligió cada enfoque.
+- [Índice de documentación](docs/README.md).
+- [Glosario](GLOSSARY.md): términos del proyecto (grupo, stack, servicio, topic).
 
 ---
 
-## 🛠️ Operaciones Comunes
+## Contribuir y seguridad
 
-### Iniciar un Stack
-```powershell
-cd .\<stack>
-docker-compose -f docker-compose-<stack>.yml up -d
-```
-
-### Detener un Stack
-```powershell
-cd .\<stack>
-docker-compose -f docker-compose-<stack>.yml down
-```
-
-### Limpiar Volúmenes (⚠️ Borra datos)
-```powershell
-cd .\<stack>
-docker-compose -f docker-compose-<stack>.yml down -v
-```
-
-### Ver Logs en Vivo
-```powershell
-cd .\<stack>
-docker-compose logs -f <servicio>
-```
-
-### Ejecutar Comando en Contenedor
-```powershell
-docker-compose -f docker-compose-<stack>.yml exec <servicio> <comando>
-```
-
-### Verificar Red
-```powershell
-docker network inspect mynet
-```
-
-### Limpiar Todo (⚠️ Destructivo)
-```powershell
-# Detener y eliminar TODOS los contenedores
-docker-compose -f docker-compose-<stack>.yml down -v
-docker system prune -a
-docker network rm mynet
-```
+- Lee [CONTRIBUTING.md](CONTRIBUTING.md) antes de enviar cambios.
+- Para reportar una vulnerabilidad, sigue las instrucciones de [SECURITY.md](SECURITY.md) y no abras un issue público.
+- Nunca subas `.env`, `credenciales.md` ni archivos con contraseñas. La carpeta `old/` está ignorada por git.
 
 ---
 
-## 🔍 Troubleshooting
+## Licencia
 
-| Problema | Síntoma | Solución |
-|----------|---------|----------|
-| Servicios no comunican | Connection refused | Verificar `docker network inspect mynet` |
-| Contenedor no inicia | Error en logs | Ver `docker-compose logs -f <servicio>` |
-| Hostnames no resuelven | ERR_NAME_NOT_RESOLVED | Verificar archivo hosts y Caddy corriendo |
-| Puerto en uso | Bind error | Cambiar puerto en `docker-compose-*.yml` |
-| Contenedor lento | High latency | Revisar recursos Docker (CPU/RAM) |
-| Volúmenes persistencia | Datos perdidos | Verificar montar con volúmenes nombrados |
-| TLS certificados | HTTPS error | Verificar directorios caddy_data y caddy_config |
-
----
-
-## 🎯 Casos de Uso
-
-### 📚 Aprendizaje Académico
-Entorno completo para estudiar data engineering sin necesidad de cloud.
-
-### 🧪 Pruebas de Concepto (PoC)
-Valida arquitecturas complejas antes de invertir en infraestructura cloud.
-
-### 🔬 Investigación y Experimentación
-Laboratorio aislado y reproducible para probar nuevas tecnologías.
-
-### 📊 Desarrollo Local
-Stack reproducible idéntico al que usarás en producción.
-
-### 🚀 Demostración
-Muestra capacidades empresariales sin necesidad de múltiples clouds.
-
----
-
-## 📊 Matriz Tecnológica
-
-| Categoría | Tecnologías |
-|-----------|-------------|
-| **Compute** | Apache Spark, Docker, Kubernetes |
-| **Data Processing** | PySpark, Python, Jupyter |
-| **Storage** | PostgreSQL, SQL Server, DB2, MinIO, HDFS |
-| **Streaming** | Apache Kafka (KRaft/Zookeeper), Debezium, CDC |
-| **Orchestration** | Apache Airflow, Kubernetes Operators |
-| **ML/Analytics** | MLflow, Scikit-Learn, Spark MLlib |
-| **Secrets** | HashiCorp Vault |
-| **Web/Proxy** | Caddy, Nginx |
-| **Container** | Docker, Docker Compose |
-
----
-
-## 🚀 Despliegue en GitHub
-
-Este repositorio está diseñado para ser compartido y replicado fácilmente:
-
-1. **Clon el repositorio**
-   ```powershell
-   git clone https://github.com/tu-usuario/data-infrastructure-lab.git
-   cd data-infrastructure-lab
-   ```
-
-2. **Sigue la guía SETUP.md**
-   ```powershell
-   # Lee la guía completa
-   cat .\SETUP.md
-   ```
-
-3. **Inicia los stacks según necesites**
-   ```powershell
-   # Ver documentación de cada stack
-   # Ejemplo: cat .\storage\setup.md
-   ```
-
-4. **Customiza según tu necesidad**
-   - Modifica credenciales en `credenciales.md`
-   - Ajusta rutas Windows en `config.md`
-   - Personaliza `docker-compose-*.yml`
-
----
-
-## 📞 Soporte y Contribuciones
-
-- 📖 Lee la documentación completa en cada carpeta
-- 🐛 Reporta problemas en Issues
-- 🔗 Referencias están en `config.md` y `credenciales.md`
-- ✨ Las mejoras son bienvenidas via Pull Requests
-
----
-
-## 📄 Licencia
-
-MIT License - Libre para uso educativo, de laboratorio y comercial. Ver LICENSE.
-
----
-
-## 🙏 Créditos
-
-Construido para educación en infraestructura de datos moderna con tecnologías open-source.
-
----
-
-<div align="center">
-
-**Laboratorio completo de ingeniería de datos y microservicios para Windows**
-
-[📖 Leer documentación completa](./SETUP.md) • [🔧 Ver configuración](./config.md) • [🔐 Ver credenciales](./credenciales.md)
-
-[⬆ Volver arriba](#-laboratorio-integrado-de-infraestructura-de-datos)
-
-</div>
+Este proyecto está bajo la [licencia MIT](LICENSE). Puedes usarlo, modificarlo y redistribuirlo, siempre que conserves el aviso de copyright.

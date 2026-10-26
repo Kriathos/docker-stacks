@@ -1,0 +1,80 @@
+name: storage
+
+# Grupo Storage: bases de datos y almacenamiento.
+# Puertos TCP publicados para el router. Servicios HTTP conectados a datalab para Caddy.
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SQLSERVER_SA_PASSWORD:?Falta SQLSERVER_SA_PASSWORD en .env}
+    ports:
+      - "${SQLSERVER_HOST_PORT:-51430}:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - ${DATA_ROOT}/sql-backups:/var/opt/mssql/backups
+
+  db2:
+    image: ibmcom/db2
+    container_name: db2
+    restart: unless-stopped
+    privileged: true
+    environment:
+      LICENSE: "accept"
+      DB2INST1_PASSWORD: ${DB2_INSTANCE_PASSWORD:?Falta DB2_INSTANCE_PASSWORD en .env}
+      DBNAME: "SAMPLE"
+    ports:
+      - "${DB2_HOST_PORT:-51431}:50000"
+    volumes:
+      - db2_data:/database
+
+  sftpgo:
+    image: drakkan/sftpgo:latest
+    container_name: sftpgo
+    restart: unless-stopped
+    environment:
+      SFTPGO_DATA_PROVIDER__DRIVER: sqlite
+      SFTPGO_HTTPD__BINDINGS__0__PORT: 51500
+    ports:
+      - "${SFTPGO_SFTP_HOST_PORT:-51432}:2022"
+    volumes:
+      - ${DATA_ROOT:?Falta DATA_ROOT en .env}/sftp:/srv/sftpgo
+      - ${DATA_ROOT}/sftpgo-data:/var/lib/sftpgo
+    networks:
+      - default
+      - datalab
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Falta MINIO_ROOT_USER en .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Falta MINIO_ROOT_PASSWORD en .env}
+    volumes:
+      - ${DATA_ROOT}/minio-data:/data
+    networks:
+      - default
+      - datalab
+
+  apache-fileserver:
+    image: httpd:2.4
+    container_name: apache-fileserver
+    restart: unless-stopped
+    volumes:
+      - ${DATA_ROOT}/apache-fileserver:/usr/local/apache2/htdocs/
+    networks:
+      - default
+      - datalab
+
+volumes:
+  sqlserver_data:
+  db2_data:
+
+networks:
+  datalab:
+    external: true

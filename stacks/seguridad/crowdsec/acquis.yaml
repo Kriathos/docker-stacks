@@ -1,0 +1,5 @@
+# Fuente de logs para CrowdSec: accesos de Caddy en JSON.
+filenames:
+  - /var/log/caddy/access.log
+labels:
+  type: caddy

@@ -1,0 +1,126 @@
+name: kafka-kraft
+
+# Grupo Kafka con KRaft (3 brokers + controladores).
+# Brokers publicados por TCP para el router. Kafka UI y Kafka Connect se publican por Caddy.
+
+x-kafka-common: &kafka-common
+  image: confluentinc/cp-kafka:7.5.0
+  restart: unless-stopped
+  environment: &kafka-env
+    KAFKA_PROCESS_ROLES: broker,controller
+    KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
+    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+    KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+    KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+    KAFKA_LOG_DIRS: /var/lib/kafka/data
+    KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+    CLUSTER_ID: ${KRAFT_CLUSTER_ID:?Falta KRAFT_CLUSTER_ID en .env}
+
+services:
+  kafka1:
+    <<: *kafka-common
+    container_name: kafka1_kraft
+    ports:
+      - "${KRAFT_KAFKA1_HOST_PORT:-51437}:9092"
+    environment:
+      <<: *kafka-env
+      KAFKA_NODE_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092
+    volumes:
+      - kafka1_data:/var/lib/kafka/data
+    networks:
+      - default
+      - datalab
+
+  kafka2:
+    <<: *kafka-common
+    container_name: kafka2_kraft
+    ports:
+      - "${KRAFT_KAFKA2_HOST_PORT:-51438}:9092"
+    environment:
+      <<: *kafka-env
+      KAFKA_NODE_ID: 2
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:9092
+    volumes:
+      - kafka2_data:/var/lib/kafka/data
+    networks:
+      - default
+      - datalab
+
+  kafka3:
+    <<: *kafka-common
+    container_name: kafka3_kraft
+    ports:
+      - "${KRAFT_KAFKA3_HOST_PORT:-51439}:9092"
+    environment:
+      <<: *kafka-env
+      KAFKA_NODE_ID: 3
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka3:9092
+    volumes:
+      - kafka3_data:/var/lib/kafka/data
+    networks:
+      - default
+      - datalab
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui-kraft
+    restart: unless-stopped
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+    environment:
+      KAFKA_CLUSTERS_0_NAME: kraft-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1:9092,kafka2:9092,kafka3:9092
+    networks:
+      - default
+      - datalab
+
+  kafka-connect:
+    image: debezium/connect:2.5
+    container_name: kafka-connect-kraft
+    restart: unless-stopped
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+      - postgres
+    environment:
+      BOOTSTRAP_SERVERS: kafka1:9092,kafka2:9092,kafka3:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: debezium-configs
+      OFFSET_STORAGE_TOPIC: debezium-offsets
+      STATUS_STORAGE_TOPIC: debezium-status
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+    networks:
+      - default
+      - datalab
+
+  postgres:
+    image: debezium/postgres:15
+    container_name: postgres_kraft
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${KRAFT_POSTGRES_PASSWORD:?Falta KRAFT_POSTGRES_PASSWORD en .env}
+      POSTGRES_DB: demo
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - default
+      - datalab
+
+volumes:
+  kafka1_data:
+  kafka2_data:
+  kafka3_data:
+  postgres_data:
+
+networks:
+  datalab:
+    external: true

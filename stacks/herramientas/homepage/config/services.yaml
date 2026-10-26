@@ -1,0 +1,67 @@
+- Almacenamiento:
+    - SFTPGo:
+        href: https://sftp.luispicado.com
+        description: Servidor SFTP con administración web
+    - MinIO:
+        href: https://minio.luispicado.com
+        description: Almacenamiento compatible con S3
+    - Apache fileserver:
+        href: https://data.luispicado.com
+        description: Archivos compartidos
+
+- Kafka:
+    - Kafka UI (KRaft):
+        href: https://kraft-ui.luispicado.com
+        description: Brokers KRaft y tópicos
+    - Kafka UI (Zookeeper):
+        href: https://zoo-ui.luispicado.com
+        description: Brokers con Zookeeper y tópicos
+    - Kafka Connect (KRaft):
+        href: https://kraft-api.luispicado.com
+        description: API REST de conectores
+
+- Databricks:
+    - Jupyter:
+        href: https://jupyter.luispicado.com
+        description: Notebooks
+    - Spark UI:
+        href: https://spark.luispicado.com
+        description: Jobs de Spark
+    - MLflow:
+        href: https://mlflow.luispicado.com
+        description: Experimentos y modelos
+    - Vault:
+        href: https://vault.luispicado.com
+        description: Secretos
+
+- Orquestacion:
+    - Airflow:
+        href: https://airflow.luispicado.com
+        description: DAGs y ejecuciones
+
+- Observabilidad:
+    - Grafana:
+        href: https://grafana.luispicado.com
+        description: Paneles
+    - Prometheus:
+        href: https://prometheus.luispicado.com
+        description: Métricas
+
+- Monitoreo:
+    - Uptime Kuma:
+        href: https://kuma.luispicado.com
+        description: Disponibilidad de servicios
+    - Portainer:
+        href: https://portainer.luispicado.com
+        description: Gestión de contenedores
+    - ntfy:
+        href: https://ntfy.luispicado.com
+        description: Notificaciones push
+
+- Herramientas:
+    - pgAdmin:
+        href: https://pgadmin.luispicado.com
+        description: Explorar y editar los Postgres
+    - Archivos:
+        href: https://files.luispicado.com
+        description: Subir y bajar archivos

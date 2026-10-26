@@ -1,0 +1,3 @@
+# 0006: Hive Metastore como catálogo de tablas en lugar de Unity Catalog OSS
+
+Las tablas Delta se guardan en MinIO con rutas `s3a://`, y su catálogo es Hive Metastore con Postgres como base de metadatos. Se descartó Unity Catalog OSS, aunque tiene interfaz web, porque su configuración de S3 solo documenta claves estilo AWS y no un endpoint para MinIO, así que no está comprobado que lea el almacenamiento del laboratorio. Hive Metastore usa la misma ruta `s3a://` que ya usan los notebooks y no requiere cambiar el almacenamiento. Se acepta como costo que el catálogo no tiene interfaz web: las tablas se consultan con SQL desde Jupyter, y la base de metadatos se administra desde pgAdmin.

@@ -17,6 +17,7 @@ Guía completa para securizar el laboratorio de desarrollo e implementar prácti
 
 ## 📋 Tabla de Contenidos
 
+0. [Estado actual del laboratorio](#estado-actual-del-laboratorio)
 1. [Desarrollo (Seguro)](#desarrollo-seguro)
 2. [Transición a Producción](#transición-a-producción)
 3. [Gestión de Secretos](#gestión-de-secretos)
@@ -24,6 +25,37 @@ Guía completa para securizar el laboratorio de desarrollo e implementar prácti
 5. [Cifrado](#cifrado)
 6. [Networking](#networking)
 7. [Compliance](#compliance)
+
+---
+
+## 🧭 Estado actual del laboratorio
+
+Esta sección describe la configuración real del proyecto. Las secciones siguientes son ejemplos generales.
+
+### Exposición a internet
+
+- **Caddy (80 y 443):** entrada HTTP y HTTPS para todos los subdominios. La lista está en la [guía](docs/guia.md#52-cloudflare-dns).
+- **TCP publicados por el router:** SQL Server (51430), DB2 (51431), SFTP (51432), Kafka con Zookeeper (51435) y los brokers KRaft (51437 a 51439). Son los únicos puertos reservados que se usan.
+- **Postgres:** no publican puerto. Solo se alcanzan desde la red `datalab`, a través de pgAdmin.
+- **Puertos nuevos:** los publicados empiezan en 51500. Ver [ADR 0005](docs/adr/0005-postgres-sin-puertos-y-reglas-de-puertos.md).
+
+### Autenticación
+
+- **Servicios con login propio:** SFTPGo, MinIO, Vault, Airflow, Grafana, Uptime Kuma, ntfy (sin acceso anónimo), pgAdmin, FileBrowser y Jupyter (con token).
+- **Servicios con clave de Caddy:** Apache, Kafka UI, Kafka Connect, MLflow, Spark UI y Prometheus.
+- **Portainer:** primero la clave de Caddy, después su propio login. Controla el socket de Docker, así que quien entre controla la PC.
+
+Ver [ADR 0004](docs/adr/0004-autenticacion-por-capas-en-caddy.md).
+
+### Riesgos conocidos
+
+- **Kafka sin cifrado ni autenticación:** los listeners están en `PLAINTEXT`. Quien llegue a los puertos 51435 o 51437 a 51439 puede producir y consumir mensajes. Pendiente: TLS y SASL.
+- **SQL Server y DB2 por TCP directo:** están expuestos con su usuario administrador (`sa` y `db2inst1`). El compose no configura TLS para ninguno de los dos.
+- **Clave de Caddy compartida:** es la misma para todos los servicios protegidos. CrowdSec detecta intentos fallidos, pero según la configuración actual no los bloquea.
+- **windows_exporter (puerto 9182):** corre en Windows y su regla de firewall acepta conexiones entrantes en todos los perfiles de red. Cualquier equipo de la red local puede leer las métricas del host. Si no lo necesitas, limita la regla a Docker o elimínala ([ADR 0007](docs/adr/0007-metricas-del-host-con-windows-exporter.md)).
+- **Portainer con socket de Docker:** quien entre a Portainer controla los contenedores y, en la práctica, la PC. Su setup token aparece en los logs del contenedor mientras no se cree la cuenta.
+- **Vault sellado tras reinicio:** mientras esté sellado no entrega secretos, pero el desbloqueo exige 3 de sus 5 claves. Guárdalas fuera del repositorio.
+- **Contraseñas en el historial de git:** las que ya estaban antes de moverlas a `.env` se conservaron por decisión propia ([ADR 0003](docs/adr/0003-secretos-en-env-sin-versionar.md)).
 
 ---
 
@@ -91,11 +123,11 @@ password = "MySecurePass123"
 ### 4. Redes Aisladas
 
 ```yaml
-# Desarrollo - La red mynet aísla del host
+# Los servicios se conectan a su red de grupo (default) y a datalab solo si Caddy
+# o otro grupo los necesitan. Sin ports:, nada es accesible desde el host.
 networks:
-  mynet:
-    external: true
-    # No exponer al host directamente
+  - default
+  - datalab
 ```
 
 ---
@@ -301,7 +333,7 @@ volumes:
 ### 3. Cifrado en Tránsito (in transit)
 
 ```yaml
-# Todas las conexiones entre contenedores en mynet
+# Todas las conexiones entre contenedores de la misma red
 # Docker maneja cifrado por defecto
 
 # Para conexiones externas, usar TLS:
@@ -339,14 +371,15 @@ New-NetFirewallRule -DisplayName "Block Kafka" `
 ### 2. Exponer Solo Puertos Necesarios
 
 ```yaml
-# ✅ BIEN - Solo Caddy y SSH expuestos
+# ✅ BIEN - Solo Caddy expuesto. En este laboratorio, además, los TCP reservados
+# (51430 a 51440) que el router reenvía. Los Postgres no publican puerto.
 services:
   caddy:
     ports:
       - "80:80"
       - "443:443"
   
-  # SQL, MinIO, Kafka: NO expuestos directamente
+  # MinIO y Apache van por Caddy, sin puerto publicado
 
 # ❌ MAL - Todos los puertos expuestos
 services:
@@ -547,9 +580,10 @@ Si sospechas una violación de seguridad:
 
 ## 🔗 Relacionado
 
-- [credenciales.md](./credenciales.md) - Gestión de secretos
-- [config.md](./config.md) - Configuración segura
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Diseño seguro
+- [Guía del laboratorio](docs/guia.md) - Configuración y solución de problemas
+- [ADR 0003](docs/adr/0003-secretos-en-env-sin-versionar.md) - Secretos en `.env`
+- [ADR 0004](docs/adr/0004-autenticacion-por-capas-en-caddy.md) - Autenticación por capas
+- [ADR 0005](docs/adr/0005-postgres-sin-puertos-y-reglas-de-puertos.md) - Postgres y puertos
 
 ---
 
@@ -557,6 +591,6 @@ Si sospechas una violación de seguridad:
 
 **La seguridad es un proceso, no un producto.**
 
-[📖 README](./README.md) | [🔐 SECURITY](./SECURITY.md) | [🔧 TROUBLESHOOTING](./TROUBLESHOOTING.md)
+[📖 README](./README.md) | [🔐 SECURITY](./SECURITY.md) | [🔧 Guía](./docs/guia.md)
 
 </div>

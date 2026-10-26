@@ -1,0 +1,145 @@
+name: databricks
+
+# Grupo Databricks: Spark, Jupyter, MLflow, Hive Metastore (con su Postgres) y Vault.
+# Todos los servicios HTTP se publican por Caddy a través de datalab.
+# Airflow se movió al grupo orquestacion.
+# Hive Metastore guarda el catálogo de tablas; los datos Delta viven en MinIO (s3a://).
+# Ningún Postgres de este grupo publica puerto: se administran desde pgAdmin.
+
+services:
+  spark:
+    image: apache/spark:3.5.0
+    container_name: spark
+    restart: unless-stopped
+    hostname: spark
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master"]
+    volumes:
+      - spark_data:/opt/spark/data
+      - spark_parquet:/opt/spark/parquet
+      - ./jars:/opt/spark/jars-extra
+    networks:
+      - default
+      - datalab
+
+  spark-worker:
+    image: apache/spark:3.5.0
+    container_name: spark-worker
+    restart: unless-stopped
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark:7077"]
+    depends_on:
+      - spark
+    volumes:
+      - spark_parquet:/opt/spark/parquet
+      - ./jars:/opt/spark/jars-extra
+    # Solo datalab: el master se anuncia en su IP de datalab; si el worker también estuviera
+    # en databricks_default, "spark" resolvería a otra IP donde el master no escucha.
+    networks:
+      - datalab
+
+  jupyter:
+    image: apache/spark:3.5.0
+    container_name: jupyter
+    restart: unless-stopped
+    user: root
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        pip install jupyter jupyterlab pyspark==3.5.0 delta-spark==3.0.0 hvac mlflow sparksql-magic --quiet &&
+        jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root \
+          --IdentityProvider.token='${JUPYTER_TOKEN:?Falta JUPYTER_TOKEN en .env}' \
+          --ServerApp.allow_origin='*' \
+          --ServerApp.allow_remote_access=True \
+          --ServerApp.root_dir=/home/jovyan/work
+    environment:
+      - JAVA_HOME=/opt/java/openjdk
+      - SPARK_HOME=/opt/spark
+      - PYSPARK_PYTHON=/usr/local/bin/python3
+      - PYSPARK_DRIVER_PYTHON=/usr/local/bin/python3
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - spark_parquet:/opt/spark/parquet
+      - ./jars:/opt/spark/jars-extra
+      - ./mlruns:/mlruns
+    # Solo datalab, por la misma razón que spark-worker: "spark" tiene que resolver a la IP del master
+    networks:
+      - datalab
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: mlflow
+    restart: unless-stopped
+    volumes:
+      - ./mlruns:/mlruns
+    command: [
+      "mlflow", "server",
+      "--backend-store-uri", "sqlite:////mlruns/mlflow.db",
+      "--default-artifact-root", "/mlruns",
+      "--host", "0.0.0.0",
+      "--port", "5000",
+      "--allowed-hosts", "mlflow.${DOMAIN:-luispicado.com},localhost"
+    ]
+    networks:
+      - default
+      - datalab
+
+  hive-postgres:
+    image: postgres:15
+    container_name: hive-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: ${HIVE_POSTGRES_PASSWORD:?Falta HIVE_POSTGRES_PASSWORD en .env}
+      POSTGRES_DB: metastore
+    volumes:
+      - hive_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hive -d metastore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+      - datalab
+
+  hive-metastore:
+    build: ./hive
+    image: local/hive-metastore:4.0.0-pg
+    container_name: hive-metastore
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: metastore
+      DB_DRIVER: postgres
+      HIVE_POSTGRES_PASSWORD: ${HIVE_POSTGRES_PASSWORD:?Falta HIVE_POSTGRES_PASSWORD en .env}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Falta MINIO_ROOT_USER en .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Falta MINIO_ROOT_PASSWORD en .env}
+    volumes:
+      - ./hive/conf/hive-site.xml:/opt/hive/conf/hive-site.xml:ro
+    depends_on:
+      hive-postgres:
+        condition: service_healthy
+    networks:
+      - default
+      - datalab
+
+  vault:
+    image: hashicorp/vault:latest
+    container_name: vault
+    restart: unless-stopped
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./vault/data:/vault/data
+      - ./vault/config:/vault/config
+    command: vault server -config=/vault/config/config.hcl
+    networks:
+      - default
+      - datalab
+
+volumes:
+  spark_data:
+  spark_parquet:
+  hive_postgres_data:
+
+networks:
+  datalab:
+    external: true

@@ -1,0 +1,84 @@
+name: orquestacion
+
+# Grupo Orquestación: Airflow con su Postgres de metadatos.
+# La interfaz web se publica por Caddy a través de datalab.
+
+# Imagen propia (ver airflow/Dockerfile): agrega Java, PySpark, Delta y papermill para ejecutar notebooks.
+x-airflow-common: &airflow-common
+  build: ./airflow
+  image: airflow-lab:2.9.0-papermill
+  restart: unless-stopped
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:?Falta AIRFLOW_FERNET_KEY en .env}
+    AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${AIRFLOW_POSTGRES_PASSWORD:?Falta AIRFLOW_POSTGRES_PASSWORD en .env}@airflow-postgres/airflow
+  volumes:
+    - ./dags:/opt/airflow/dags
+    # Notebooks y JARs de databricks, con las mismas rutas que usan los notebooks
+    - ../databricks/notebooks:/opt/airflow/notebooks
+    - ../databricks/jars:/opt/spark/jars-extra:ro
+    # Copias ejecutadas por papermill
+    - ./notebooks_out:/opt/airflow/notebooks_out
+  networks:
+    - default
+    - datalab
+  depends_on:
+    airflow-postgres:
+      condition: service_healthy
+
+services:
+  airflow-postgres:
+    image: postgres:15
+    container_name: airflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: ${AIRFLOW_POSTGRES_PASSWORD:?Falta AIRFLOW_POSTGRES_PASSWORD en .env}
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - default
+      - datalab
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow -d airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow-init
+    restart: "no"
+    command: ["airflow", "db", "migrate"]
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: airflow-webserver
+    command: ["airflow", "webserver"]
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    networks:
+      - default
+      - datalab
+
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: airflow-scheduler
+    command: ["airflow", "scheduler"]
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
+
+networks:
+  datalab:
+    external: true

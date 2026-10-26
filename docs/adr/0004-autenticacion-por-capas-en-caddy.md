@@ -1,0 +1,3 @@
+# 0004: Autenticación por capas: login propio del servicio o contraseña en Caddy
+
+Los servicios con login propio (SFTPGo, MinIO, Vault, Airflow, Grafana, Uptime Kuma, ntfy, pgAdmin, FileBrowser, Jupyter con token) usan su propio login. Portainer tiene las dos capas: primero el usuario y clave de Caddy, y después su propio login, porque controla el socket de Docker. Los que no tienen login (Apache, Kafka UI, Kafka Connect, MLflow, Spark, Prometheus) se protegen solo con un usuario y clave de Caddy que el navegador pide antes de mostrar la página. Se descartó Tailscale y Cloudflare Access porque el requisito es que los servicios sean accesibles desde internet.

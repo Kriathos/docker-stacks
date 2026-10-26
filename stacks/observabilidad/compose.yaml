@@ -1,0 +1,59 @@
+name: observabilidad
+
+# Grupo Observabilidad: Prometheus (métricas), Grafana (paneles) y los exporters que alimentan a Prometheus.
+# Grafana y Prometheus se publican por Caddy a través de datalab.
+# Node Exporter y cAdvisor solo son alcanzables dentro de la red del grupo.
+#
+# Las métricas son de la VM de Linux que usa Docker Desktop, no de Windows.
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - default
+      - datalab
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Falta GRAFANA_ADMIN_PASSWORD en .env}
+      GF_SERVER_ROOT_URL: https://grafana.${DOMAIN:-luispicado.com}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - default
+      - datalab
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - default
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  datalab:
+    external: true

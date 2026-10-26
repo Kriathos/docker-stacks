@@ -1,0 +1,55 @@
+name: herramientas
+
+# Grupo Herramientas: pgAdmin (explorar los Postgres), FileBrowser (subir y bajar archivos)
+# y Homepage (página de inicio del dominio).
+# Todos se publican por Caddy a través de datalab. No publican puertos al host.
+
+services:
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:?Falta PGADMIN_DEFAULT_EMAIL en .env}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?Falta PGADMIN_DEFAULT_PASSWORD en .env}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - default
+      - datalab
+
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: filebrowser
+    restart: unless-stopped
+    environment:
+      FB_USERNAME: ${FILEBROWSER_ADMIN_USER:-admin}
+      FB_PASSWORD: ${FILEBROWSER_ADMIN_PASSWORD:?Falta FILEBROWSER_ADMIN_PASSWORD en .env}
+    volumes:
+      # La misma carpeta que sirve Apache en data.luispicado.com: lo que subas aquí se puede descargar allá
+      - ${DATA_ROOT:?Falta DATA_ROOT en .env}/apache-fileserver:/srv
+      - filebrowser_db:/database
+    networks:
+      - default
+      - datalab
+
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: ${DOMAIN:-luispicado.com}
+    volumes:
+      # Sin :ro: homepage escribe su carpeta logs dentro de config
+      - ./homepage/config:/app/config
+    networks:
+      - default
+      - datalab
+
+volumes:
+  pgadmin_data:
+  filebrowser_db:
+
+networks:
+  datalab:
+    external: true

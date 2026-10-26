@@ -1,9 +1,11 @@
-# ============================
-# 🔐 SECRETS & CREDENTIALS
-# ============================
+# ============================================================
+# Secretos y credenciales (nunca se suben)
+# ============================================================
 .env
 .env.local
 .env.*.local
+!.env.example
+credenciales.md
 credenciales.txt
 credenciales.local.md
 secrets/
@@ -11,74 +13,65 @@ secrets/
 *.pem
 *.pfx
 
-# ============================
-# 🐳 DOCKER COMPOSE
-# ============================
-# Excluir SOLO los docker-compose.yml genéricos (sin nombre específico)
-# Permitir docker-compose-NOMBRE.yml (con nombre específico)
+# ============================================================
+# Proyecto anterior y archivos deprecados (copia local, no versionar)
+# ============================================================
+old/
+
+# ============================================================
+# Docker
+# ============================================================
 docker-compose.override.yml
 docker-compose.local.yml
-*/docker-compose.yml      # Excluir docker-compose.yml genéricos en subcarpetas
-!*/docker-compose-*.yml   # Pero permitir docker-compose-NOMBRE.yml
+*.local.yml
+*.local.yaml
+.dockerignore
+Dockerfile.local
 
-# ============================
-# 📊 DATA & LOGS
-# ============================
+# ============================================================
+# Datos y volúmenes locales (persisten fuera de git)
+# ============================================================
+data/
 *.log
 logs/
-data/
 *.db
 *.sqlite
 *.sqlite3
-mlruns/
-.ipynb_checkpoints/
-
-# ============================
-# 💾 LOCAL VOLUMES
-# ============================
-/F:/sftp/*
-/F:/sftpgo-data/*
-/F:/minio-data/*
-/F:/apache-fileserver/*
-/C:/data/*
 volumes/
-mysql_data/
 postgres_data/
+mysql_data/
 kafka_data/
 redis_data/
+backups/
+backup/
+archives/
+*.bak
+*.backup
+/F:/
+/C:/data/
 
-# ============================
-# 🐳 DOCKER
-# ============================
-.dockerignore
-Dockerfile.local
-docker-compose.local.yml
+# ============================================================
+# Stacks: datos generados en ejecución
+# ============================================================
+stacks/databricks/vault/data/
+stacks/databricks/mlruns/
+stacks/databricks/notebooks/.ipynb_checkpoints/
+stacks/databricks/tokens.txt
+stacks/databricks/jars/
+stacks/orquestacion/logs/
+stacks/seguridad/crowdsec/data/
 
-# ============================
-# 🔍 IDE & EDITORS
-# ============================
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
-*.sublime-project
-*.sublime-workspace
-.vim/
-
-# ============================
-# 🐍 PYTHON
-# ============================
+# ============================================================
+# Python
+# ============================================================
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
 .Python
 env/
 venv/
 ENV/
+.venv/
 build/
 develop-eggs/
 dist/
@@ -92,8 +85,8 @@ sdist/
 var/
 wheels/
 *.egg-info/
-.installed.cfg
 *.egg
+.installed.cfg
 MANIFEST
 pip-log.txt
 .tox/
@@ -102,160 +95,104 @@ pip-log.txt
 .cache
 .pytest_cache/
 
-# ============================
-# 📦 NODE & NPM
-# ============================
+# ============================================================
+# Node
+# ============================================================
 node_modules/
 npm-debug.log
 yarn-error.log
-package-lock.json
-yarn.lock
 
-# ============================
-# ☕ JAVA & SCALA
-# ============================
+# ============================================================
+# Java / Scala / artefactos
+# ============================================================
 *.class
 *.jar
 target/
 .gradle/
 
-# ============================
-# 📝 NOTEBOOKS & JUPYTER
-# ============================
+# ============================================================
+# Jupyter
+# ============================================================
 .ipynb_checkpoints/
-*.ipynb
 .jupyter/
-databricks/jars/
-databricks/vault/data/
-databricks/tokens.txt
 
-# ============================
-# 🔄 AIRFLOW
-# ============================
+# ============================================================
+# Airflow
+# ============================================================
 airflow_home/
 airflow.db
 airflow.cfg.local
-logs/airflow/
-dags/__pycache__/
 
-# ============================
-# 📊 DATABRICKS STACK
-# ============================
-databricks/jars/
-databricks/vault/data/
-databricks/tokens.txt
-databricks/notebook_exports/
-
-# ============================
-# 🔐 AWS & CLOUD
-# ============================
+# ============================================================
+# Cloud
+# ============================================================
 .aws/credentials
 .aws/config
 .azure/
 .gcloud/
 
-# ============================
-# 🔒 VPN & SECURITY
-# ============================
+# ============================================================
+# VPN y configuración local
+# ============================================================
 *.ovpn
-*.conf
 vpn_config/
+config.local.py
+*.local.json
 
-# ============================
-# 📁 BACKUPS & ARCHIVES
-# ============================
-backups/
-backup/
-archives/
-*.tar.gz
-*.zip
-*.7z
-*.bak
-*.backup
-
-# ============================
-# 🧪 TEST & COVERAGE
-# ============================
-.coverage
+# ============================================================
+# Pruebas y cobertura
+# ============================================================
 htmlcov/
 *.cover
 test-output/
 test-results/
 coverage.xml
 
-# ============================
-# 🏗️ BUILD ARTIFACTS
-# ============================
-build/
-dist/
-*.egg-info/
-*.dist-info/
+# ============================================================
+# Editores y sistema operativo
+# ============================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+.vim/
 
-# ============================
-# 📚 DOCUMENTATION BUILDS
-# ============================
-site/
-docs/_build/
-.sphinx/
-
-# ============================
-# GIT & VCS
-# ============================
+# ============================================================
+# Git
+# ============================================================
 .git/
 
-# ============================
-# 🏢 ENTERPRISE & SENSITIVE
-# ============================
-enterprise/
-proprietary/
-confidential/
-private/
-local/
-development/
+# Salidas ejecutadas por papermill (Airflow)
+stacks/orquestacion/notebooks_out/
 
-# ============================
-# 📁 CARPETAS EXCLUIDAS
-# ============================
-# Excluir carpetas que NO deben estar en el repo
-kafka/                    # Carpeta principal de kafka (deprecated)
-kubernetes/               # Carpeta kubernetes
-web/nginx/                # Subcarpeta nginx de web
-storage/sql-server/       # Subcarpeta sql-server de storage
-storage/db2/              # Subcarpeta db2 de storage
-kafka/kafka-kraft/        # Versión antigua de kafka-kraft
-kafka/kafka-zookeeper/    # Versión antigua de kafka-zookeeper
-kafka/pruebas-end-to-end/ # Pruebas antiguas de kafka
-kafka/version-1/          # Versiones viejas
+# ============================================================
+# Secretos y credenciales en cualquier carpeta
+# ============================================================
+**/tokens.txt
+**/credenciales*
+**/.env
+**/*.env.local
 
-# ============================
-# ✅ PERO PERMITIR ESTAS
-# ============================
-# Permitir que existan los docker-compose-*.yml con nombre específico
-!kafka-kraft/docker-compose-*.yml
-!kafka-zookeeper/docker-compose-*.yml
-!storage/docker-compose-*.yml
-!databricks/docker-compose-*.yml
-!web/docker-compose-*.yml
+# Certificados y llaves
+*.crt
+*.p12
+*.jks
+**/vault/config/*.keys
 
-# ============================
-# ⚙️ CONFIG OVERRIDES
-# ============================
-*.local.yml
-*.local.yaml
-*.local.json
-config.local.py
+# ============================================================
+# Editores
+# ============================================================
+.vscode/
+.idea/
+*.code-workspace
 
-# ============================
-# ✅ KEEP THESE (IMPORTANT)
-# ============================
-!.github/
-!.gitattributes
-!.dockerignore
-!.gitkeep
-!.env.example
-!.env.template
-!example_config.yml
-!CONTRIBUTING.md
-!CODE_OF_CONDUCT.md
-!LICENSE
-!/README.md
+# ============================================================
+# Datos generados (en cualquier carpeta)
+# ============================================================
+**/mlruns/
+**/notebooks_out/
