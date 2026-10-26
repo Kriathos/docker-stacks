@@ -196,3 +196,10 @@ stacks/orquestacion/notebooks_out/
 # ============================================================
 **/mlruns/
 **/notebooks_out/
+
+# ============================================================
+# Herramientas locales de IA (instaladas en esta máquina)
+# ============================================================
+.agents/
+.claude/
+skills-lock.json
