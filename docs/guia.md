@@ -360,6 +360,7 @@ Y se consultan con `%%sql SHOW TABLES` o desde DBeaver conectado al Postgres de 
 | pgAdmin no conecta a un Postgres | El Postgres no está en `datalab` o el host está mal escrito | Usa el nombre del contenedor (`postgres_kraft`, `postgres_zoo`, `airflow-postgres`, `hive-postgres`) y el puerto `5432` |
 | pgAdmin se reinicia en bucle con `does not appear to be a valid email address` | `PGADMIN_DEFAULT_EMAIL` no tiene formato de correo | Pon un correo válido en `.env` y recrea el contenedor |
 | Hive Metastore no arranca | La base de metadatos no está lista o falta un JAR | `docker logs hive-metastore`. Los JARs deben ser legibles por el usuario `hive` |
+| FileBrowser da error al entrar con las credenciales de `.env` (403 en `/api/login`) | `FB_USERNAME` y `FB_PASSWORD` solo se usan la primera vez que se crea la base de datos. Si cambiaste `.env` después, la clave guardada es la vieja | Actualiza la clave del admin en la base: detén el contenedor, ejecuta `filebrowser users update <usuario> --password <clave> -d /database/filebrowser.db` en un contenedor temporal con el volumen `herramientas_filebrowser_db`, y vuelve a iniciar. No basta con reiniciar |
 | `saveAsTable` no registra la tabla | La sesión de Spark no tiene `enableHiveSupport()` o no apunta a `thrift://hive-metastore:9083` | Crea la sesión como se indica en la sección Hive Metastore |
 
 Para ver los logs de cualquier servicio: `docker logs -f <nombre-contenedor>`.
