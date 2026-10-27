@@ -239,14 +239,14 @@ services:
     image: myimage:latest
     container_name: my-service
     restart: unless-stopped
-    ports:
-      - "8080:8080"
+    # Sin ports: si necesita publicarse, ver docs/guia.md (sección 5.1)
     environment:
       VAR_NAME: value
     volumes:
       - my_volume:/data
     networks:
-      - mynet
+      - default
+      - datalab
 
 # ❌ MAL - Falta información
 services:
@@ -306,12 +306,11 @@ más texto
    📖 [Documentación completa](./docs/feature.md)
    ```
 
-2. **Crea archivo de documentación**
-   - `setup.md` para instrucciones de setup
-   - `config.md` para configuración
-   - `README.md` para descripción general
+2. **Documenta el cambio**
+   - Uso, configuración y solución de problemas: en `docs/guia.md`, en la sección del grupo o servicio.
+   - Si el cambio es una decisión de arquitectura, crea un ADR nuevo en `docs/adr/` con el siguiente número.
 
-3. **Actualiza INDEX.md** si es necesario
+3. **Actualiza `docs/README.md`** si agregas un documento nuevo
 
 ### Actualizar Documentación Existente
 
@@ -338,10 +337,10 @@ Verifica que todo funciona:
 pytest tests/
 
 # 3. Build Docker
-docker-compose build
+docker compose -f stacks/<grupo>/compose.yaml build
 
 # 4. Setup local
-docker-compose up -d
+.\scripts\labs.ps1 up <grupo>
 
 # 5. Verify manually
 # Accede a servicios y verifica funcionan
@@ -380,7 +379,7 @@ git checkout -b fix/sql-connection-timeout
 # Editar archivos...
 
 # 6. Commit
-git add storage/config.md
+git add docs/guia.md
 git commit -m "fix: clarify SQL Server connection parameters"
 
 # 7. Push

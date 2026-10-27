@@ -1,0 +1,183 @@
+#--------------------------------
+# Caddy: entrada HTTP de todo el laboratorio
+#--------------------------------
+# Regla:
+#   - Servicio con login propio          -> sin import proteger
+#   - Servicio sin login (Apache, Kafka UI, Kafka Connect, MLflow, Spark, Prometheus)
+#                                         -> import proteger (pide usuario y clave en el navegador)
+#
+# Las variables CADDY_BASIC_USER y CADDY_BASIC_PASSWORD_HASH vienen de .env.
+
+{
+  admin off
+}
+
+# Registro de accesos en JSON. CrowdSec lee este archivo.
+(logs) {
+  log {
+    output file /var/log/caddy/access.log {
+      roll_size 50mb
+      roll_keep 5
+    }
+    format json
+  }
+}
+
+# Pide usuario y clave antes de mostrar el servicio.
+(proteger) {
+  basic_auth {
+    {env.CADDY_BASIC_USER} {env.CADDY_BASIC_PASSWORD_HASH}
+  }
+}
+
+# Página de inicio del laboratorio (Homepage)
+{$DOMAIN} {
+  import logs
+  reverse_proxy homepage:3000
+}
+
+# www lleva siempre a la raiz (sin www)
+www.{$DOMAIN} {
+  redir https://{$DOMAIN}{uri} permanent
+}
+
+#--------------------------------
+# Storage
+#--------------------------------
+sftp.{$DOMAIN} {
+  import logs
+  reverse_proxy sftpgo:51500
+}
+
+minio.{$DOMAIN} {
+  import logs
+  reverse_proxy minio:9001
+}
+
+minio-api.{$DOMAIN} {
+  import logs
+  reverse_proxy minio:9000
+}
+
+data.{$DOMAIN} {
+  import logs
+  import proteger
+  reverse_proxy apache-fileserver:80
+}
+
+#--------------------------------
+# Kafka con KRaft
+#--------------------------------
+kraft-ui.{$DOMAIN} {
+  import logs
+  import proteger
+  reverse_proxy kafka-ui-kraft:8080 {
+    header_up Upgrade {http.request.header.Upgrade}
+    header_up Connection {http.request.header.Connection}
+  }
+}
+
+kraft-api.{$DOMAIN} {
+  import logs
+  import proteger
+  reverse_proxy kafka-connect-kraft:8083
+}
+
+#--------------------------------
+# Kafka con Zookeeper
+#--------------------------------
+zoo-ui.{$DOMAIN} {
+  import logs
+  import proteger
+  reverse_proxy kafka-ui-zoo:8080 {
+    header_up Upgrade {http.request.header.Upgrade}
+    header_up Connection {http.request.header.Connection}
+  }
+}
+
+zoo-api.{$DOMAIN} {
+  import logs
+  import proteger
+  reverse_proxy kafka-connect-zoo:8083
+}
+
+#--------------------------------
+# Databricks
+#--------------------------------
+jupyter.{$DOMAIN} {
+  import logs
+  reverse_proxy jupyter:8888 {
+    header_up Upgrade {http.request.header.Upgrade}
+    header_up Connection {http.request.header.Connection}
+  }
+}
+
+mlflow.{$DOMAIN} {
+  import logs
+  import proteger
+  reverse_proxy mlflow:5000
+}
+spark.{$DOMAIN} {
+  import logs
+  import proteger
+  reverse_proxy spark:8080
+}
+
+vault.{$DOMAIN} {
+  import logs
+  reverse_proxy vault:8200
+}
+
+#--------------------------------
+# Orquestación
+#--------------------------------
+airflow.{$DOMAIN} {
+  import logs
+  reverse_proxy airflow-webserver:8080
+}
+
+#--------------------------------
+# Observabilidad
+#--------------------------------
+grafana.{$DOMAIN} {
+  import logs
+  reverse_proxy grafana:3000
+}
+
+prometheus.{$DOMAIN} {
+  import logs
+  import proteger
+  reverse_proxy prometheus:9090
+}
+
+#--------------------------------
+# Monitoreo del hogar
+#--------------------------------
+kuma.{$DOMAIN} {
+  import logs
+  reverse_proxy uptime-kuma:3001
+}
+
+ntfy.{$DOMAIN} {
+  import logs
+  reverse_proxy ntfy:80
+}
+
+portainer.{$DOMAIN} {
+  import logs
+  import proteger
+  reverse_proxy portainer:9000
+}
+
+#--------------------------------
+# Herramientas
+#--------------------------------
+pgadmin.{$DOMAIN} {
+  import logs
+  reverse_proxy pgadmin:80
+}
+
+files.{$DOMAIN} {
+  import logs
+  reverse_proxy filebrowser:80
+}

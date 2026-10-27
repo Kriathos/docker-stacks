@@ -1,0 +1,51 @@
+name: seguridad
+
+# Grupo Seguridad:
+#   - Caddy: única entrada HTTP. Recibe el tráfico de los puertos 80 y 443 del router.
+#   - CrowdSec: lee los accesos de Caddy y detecta intentos fallidos (solo detección, sin bloqueo).
+
+services:
+  caddy:
+    image: caddy:2.8
+    container_name: caddy
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:-luispicado.com}
+      CADDY_BASIC_USER: ${CADDY_BASIC_USER:?Falta CADDY_BASIC_USER en .env}
+      CADDY_BASIC_PASSWORD_HASH: ${CADDY_BASIC_PASSWORD_HASH:?Falta CADDY_BASIC_PASSWORD_HASH en .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - caddy_logs:/var/log/caddy
+    networks:
+      - default
+      - datalab
+
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    restart: unless-stopped
+    environment:
+      COLLECTIONS: crowdsecurity/caddy
+    volumes:
+      - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
+      - caddy_logs:/var/log/caddy:ro
+      - crowdsec_data:/var/lib/crowdsec/data
+      - crowdsec_config:/etc/crowdsec
+    depends_on:
+      - caddy
+
+volumes:
+  caddy_data:
+  caddy_config:
+  caddy_logs:
+  crowdsec_data:
+  crowdsec_config:
+
+networks:
+  datalab:
+    external: true

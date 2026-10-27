@@ -1,0 +1,56 @@
+name: monitoreo
+
+# Grupo Monitoreo del hogar: Uptime Kuma (disponibilidad), ntfy (notificaciones push) y Portainer (gestión de Docker).
+# Todos tienen login propio y se publican por Caddy a través de datalab.
+#
+# ATENCIÓN: Portainer monta el socket de Docker. Quien controle Portainer controla el host.
+# Por eso debe tener contraseña fuerte y, idealmente, no estar publicado en internet.
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    volumes:
+      - uptime_kuma_data:/app/data
+    networks:
+      - default
+      - datalab
+
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    restart: unless-stopped
+    command: ["serve"]
+    environment:
+      NTFY_BASE_URL: https://ntfy.${DOMAIN:-luispicado.com}
+      NTFY_BEHIND_PROXY: "true"
+      NTFY_ENABLE_LOGIN: "true"
+      NTFY_AUTH_DEFAULT_ACCESS: deny-all
+      NTFY_AUTH_FILE: /var/lib/ntfy/user.db
+      NTFY_CACHE_FILE: /var/lib/ntfy/cache.db
+    volumes:
+      - ntfy_data:/var/lib/ntfy
+    networks:
+      - default
+      - datalab
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - default
+      - datalab
+
+volumes:
+  uptime_kuma_data:
+  ntfy_data:
+  portainer_data:
+
+networks:
+  datalab:
+    external: true
