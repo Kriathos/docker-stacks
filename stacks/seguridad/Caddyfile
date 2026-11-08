@@ -27,6 +27,7 @@
 (proteger) {
   basic_auth {
     {env.CADDY_BASIC_USER} {env.CADDY_BASIC_PASSWORD_HASH}
+    {env.CADDY_BASIC_USER_2} {env.CADDY_BASIC_PASSWORD_HASH_2}
   }
 }
 
