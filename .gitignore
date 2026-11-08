@@ -203,3 +203,8 @@ stacks/orquestacion/notebooks_out/
 .agents/
 .claude/
 skills-lock.json
+
+# ============================================================
+# Herramientas locales de IA (instaladas en esta máquina)
+# ============================================================
+examples/
